@@ -70,7 +70,7 @@ form 4: `add r0, 0x6274, 0x6274`
 
 ### arithmetic
 
-- add, sub, imul, idiv, mod
+- add, subtract, multiply, divide, modulus
 
 ### boolean
 
@@ -78,14 +78,14 @@ form 4: `add r0, 0x6274, 0x6274`
 
 ### comparison, branching, and control flow
 
-- cmp, je, jne, jl, jle, jg, jge
-- call, jmp, ret
+- compare, jumpeq, jumpnoteq, jumpless, jumplesseq, jumpgreater, jumpgreatereq
+- call, jump, return
 
 ### memory load and store operations
 
 load/store a 32-bit value, 16-bit value, or 8-bit value
 
-- load, loadw, loadb, store, storew, storeb
+- load, loadword, loadbyte, store, storeword, storebyte
 - move
 
 ### stack manipulation
