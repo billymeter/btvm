@@ -15,11 +15,11 @@
 - risc
 - c-style strings
 - big endian
-- 32-bit fixed width instructions
+- 64-bit fixed width instructions
 - binaries are composed of instructions and data. all data comes after the last instruction
 - binary format:
-  - magic number (executable or object file; magic numbers: `btxecute` or `btobject` )
-  - instruction entry point (if `btxecute`)
+  - magic number (executable or object file; magic numbers: `bt_x` or `bt_o` )
+  - instruction entry point (if `bt_x`)
   - metadata: author data, symbol table?
   - start of instructions
   - data
