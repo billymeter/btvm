@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import os
 from machine import Machine
-from struct import unpack
 import sys
 
 
@@ -18,4 +17,4 @@ if len(program) > 0x10000:
     os.exit(1)
 
 vm = Machine(program=program)
-vm.status()
+vm.execute()

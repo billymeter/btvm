@@ -1,6 +1,7 @@
 from enum import Enum
 from machine import Machine
-from stuct import unpack
+from struct import unpack
+import sys
 
 
 # TODO: the individual instructions don't need if blocks for the addressing modes because that's all handled in the Instruction constructor. Remove all of that crap to shorten the length of this file.
@@ -236,331 +237,110 @@ class Instruction:
 
     def execute(self) -> None:
         if self.opcode == Opcode.ADD:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            # TODO: set overflow/carry flags
+            self.machine.registers[self.op1] += self.op2
 
         if self.opcode == Opcode.AND:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.CALL:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.COMPARE:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            self.machine.registers['rstatus']['zero'] = self.op1 - \
+                self.op2 == 0
 
         if self.opcode == Opcode.DIVIDE:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.HALT:
             self.machine.running = False
 
         if self.opcode == Opcode.INPUT:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.JUMP:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.JUMPEQ:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.JUMPGREATER:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.JUMPGREATEREQ:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.JUMPLESS:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.JUMPLESSEQ:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.JUMPNOTEQ:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            if self.machine.registers['rstatus']['zero']:
+                self.machine.registers['rip'] = self.op1
 
         if self.opcode == Opcode.LOAD:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.LOADWORD:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.LOADBYTE:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.MODULUS:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.MULTIPLY:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.MOVE:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                self.machine.registers[self.op1] = self.op2
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            self.machine.registers[self.op1] = self.op2
 
         if self.opcode == Opcode.NOP:
             # nopnopnopnopnop
             pass
 
         if self.opcode == Opcode.NOT:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.OR:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.OUTPUT:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            sys.stdout.write(chr(self.op1))
 
         if self.opcode == Opcode.POP:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.PUSH:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.RETURN:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.SHIFTLEFT:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.SHIFTRIGHT:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.STORE:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.STOREBYTE:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.STOREWORD:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.SUBTRACT:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass
 
         if self.opcode == Opcode.SYSCALL:
             pass
 
         if self.opcode == Opcode.XOR:
-            if self.mode == AddressMode.REGISTER:
-                pass
-            if self.mode == AddressMode.LITERAL:
-                pass
-            if self.mode == AddressMode.MEMORY:
-                pass
-            if self.mode == AddressMode.NONE:
-                pass
+            pass

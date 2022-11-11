@@ -23,6 +23,8 @@
   - metadata: author data, symbol table?
   - start of instructions
   - data
+- registers are initialized to zero, except for the stack pointer and base pointer, which are initialized to `0xffff`
+- all memory space is initialized to zero, then the program is loaded into memory starting at address 0
 
 ## memory map
 
@@ -58,7 +60,7 @@ possible combinations:
 | 1    | opcode       | bt       | bt       | bt       |
 | 2    | opcode       | operand  | bt       | bt       |
 | 3    | opcode       | operand  | operand  | bt       |
-| 4    | opcode       | operand  | operand  | operand  |
+| 4    | opcode       | bt       | operand  | operand  |
 
 for example, with an `add` instruction, it can take forms 3 and 4:
 
