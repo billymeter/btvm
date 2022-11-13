@@ -82,6 +82,11 @@ class StatusFlag(Enum):
 
 class SystemCall(Enum):
     EXIT = auto()
+    OPEN = auto()
+    READ = auto()
+    WRITE = auto()
+    CLOSE = auto()
+    RANDOM = auto()
 
 
 class VMError(Enum):

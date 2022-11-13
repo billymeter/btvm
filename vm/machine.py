@@ -106,8 +106,8 @@ class Instruction:
         b'j!': (Opcode.JUMPNOTEQ, AddressMode.LITERAL),
         b'J!': (Opcode.JUMPNOTEQ, AddressMode.REGISTER),
         b'LM': (Opcode.LOAD, AddressMode.MEMORY),
-        b'LW': (Opcode.LOADWORD, AddressMode.MEMORY),
         b'LB': (Opcode.LOADBYTE, AddressMode.MEMORY),
+        # b'LW': (Opcode.LOADWORD, AddressMode.MEMORY),
         b'md': (Opcode.MODULUS, AddressMode.LITERAL),
         b'mD': (Opcode.MODULUS, AddressMode.MEMORY),
         b'Md': (Opcode.MODULUS, AddressMode.REGISTER),
@@ -140,7 +140,7 @@ class Instruction:
         b'Sr': (Opcode.SHIFTRIGHT, AddressMode.REGISTER),
         b'SM': (Opcode.STORE, AddressMode.MEMORY),
         b'SB': (Opcode.STOREBYTE, AddressMode.MEMORY),
-        b'SW': (Opcode.STOREWORD, AddressMode.MEMORY),
+        # b'SW': (Opcode.STOREWORD, AddressMode.MEMORY),
         b'sb': (Opcode.SUBTRACT, AddressMode.LITERAL),
         b'sB': (Opcode.SUBTRACT, AddressMode.MEMORY),
         b'Sb': (Opcode.SUBTRACT, AddressMode.REGISTER),
@@ -169,26 +169,30 @@ class Instruction:
     def __init__(self, byt: bytes, machine: Machine):
         self.machine = machine
         opcode = byt[:2]
-        self.opcode, self.address_mode = self.opcodes[opcode]
+        try:
+            self.opcode, self.address_mode = self.opcodes[opcode]
+        except KeyError as invalid:
+            print(f'opcode {invalid} is not a valid opcode!')
+            self.machine.running = False
 
-        if self.address_mode == AddressMode.REGISTER:
+        if AddressMode.REGISTER == self.address_mode:
             # decode the register values for the operands
             self.op1 = self.register_codes[byt[2:4]]
             if b'bt' != byt[4:6]:
                 self.op2 = self.register_codes[byt[4:6]]
 
-        if self.address_mode == AddressMode.LITERAL:
+        if AddressMode.LITERAL == self.address_mode:
             if b'bt' != byt[2:4]:
                 self.op1 = self.register_codes[byt[2:4]]
             # unpack the literal value
             self.op2 = unpack(byt[4:8])
 
-        if self.address_mode == AddressMode.MEMORY:
+        if AddressMode.MEMORY == self.address_mode:
             self.op1 = self.register_codes[byt[2:4]]
             # unpack memory address and dereference
             self.op2 = self.machine.memory[unpack(byt[4:8])]
 
-        if self.address_mode == AddressMode.NONE:
+        if AddressMode.NONE == self.address_mode:
             # no processing of operands are needed
             # it's all just padding anyway
             pass
@@ -216,6 +220,7 @@ class Instruction:
 
         if Opcode.DIVIDE == self.opcode:
             # integer division only
+            # TODO: set overflow/carry flags
             self.machine.registers[self.op1] //= self.op2
 
         if Opcode.HALT == self.opcode:
@@ -252,13 +257,16 @@ class Instruction:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.LOAD == self.opcode:
-            pass
+            #hex((0xff << 8)+0x36)
+            value = (self.machine.memory[self.op2]
+                     << 8) + self.machine.memory[self.op2+1]
+            self.machine.registers[self.op1] = value
 
-        if Opcode.LOADWORD == self.opcode:
-            pass
+        # if Opcode.LOADWORD == self.opcode:
+        #     pass
 
         if Opcode.LOADBYTE == self.opcode:
-            pass
+            self.machine.registers[self.op1] = self.machine.memory[self.op2]
 
         if Opcode.MODULUS == self.opcode:
             self.machine.registers[self.op1] %= self.op2
@@ -313,23 +321,24 @@ class Instruction:
         if Opcode.RETURN == self.opcode:
             pass
 
-        if Opcode.SHIFTLEFT == self.opcode:
-            pass
+        # if Opcode.SHIFTLEFT == self.opcode:
+        #     pass
 
-        if Opcode.SHIFTRIGHT == self.opcode:
-            pass
+        # if Opcode.SHIFTRIGHT == self.opcode:
+        #     pass
 
         if Opcode.STORE == self.opcode:
-            pass
+            self.machine.memory[self.op1] = self.op2
 
         if Opcode.STOREBYTE == self.opcode:
-            pass
+            self.machine.memory[self.op1] = self.op2 & 0xff
 
-        if Opcode.STOREWORD == self.opcode:
-            pass
+        # if Opcode.STOREWORD == self.opcode:
+        #     self.machine.memory[self.op1] = self.op2 & 0xffff
 
         if Opcode.SUBTRACT == self.opcode:
-            pass
+            # TODO: set overflow/carry flags
+            self.machine.registers[self.op1] -= self.op2
 
         if Opcode.SYSCALL == self.opcode:
             pass
