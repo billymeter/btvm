@@ -1,64 +1,77 @@
-from util import AddressMode, Opcode, unpack
-# import sys
+from util import AddressMode, Opcode, unpack, Register, StatusFlag
+import sys
 
 
 class Machine:
-    def __init__(self, program):
-        if b'bt_x' != program[:4]:
-            raise 'not a valid program!'
-
+    def __init__(self, program: bytes):
         # create some memory and load the program into it
         self.memory = program + bytearray([0] * (0x10000 - len(program)))
 
         # set up registers
         self.registers = {
-            'r0': 0,
-            'r1': 0,
-            'r2': 0,
-            'r3': 0,
-            'r4': 0,
-            'r5': 0,
-            'r6': 0,
-            'r7': 0,
-            'rip': unpack(program[4:8]),
-            'rsp': 0xffff,
-            'rres': 0,
-            'rstatus': {
-                'zero': False,
-                'overflow': False,
-                'carry': False,
+            Register.R0: 0,
+            Register.R1: 0,
+            Register.R2: 0,
+            Register.R3: 0,
+            Register.R4: 0,
+            Register.R5: 0,
+            Register.R6: 0,
+            Register.R7: 0,
+            Register.RIP: unpack(program[4:8]),
+            Register.RSP: 0xffff,
+            Register.RBP: 0xffff,
+            Register.RRES: 0,
+            Register.RERROR: 0,
+            Register.RSTATUS: {
+                StatusFlag.CARRY: False,
+                StatusFlag.OVERFLOW: False,
+                StatusFlag.SIGN: False,
+                StatusFlag.ZERO: False,
             },
-            'rerror': 0,
         }
-        self.registers['rbp'] = self.registers['rsp']
 
         # machine is running flag
         self.running = False
 
-    def status(self):
+    def get_status(self, flag: StatusFlag) -> bool:
+        return self.registers[Register.RSTATUS][flag]
+
+    def halt(self) -> None:
+        self.running = False
+
+    def pop(self, size: int) -> bytes:
+        pass
+
+    def push(self, value: bytes, size: int) -> None:
+        pass
+
+    def run(self) -> None:
+        self.running = True
+        while self.running:
+            self.step()
+
+    def set_status(self, flag: StatusFlag, value: bool) -> None:
+        self.registers[Register.RSTATUS][flag] = value
+
+    def status(self) -> None:
         print('registers:')
         for _, v in enumerate(self.registers):
-            if v == 'rstatus':
-                for k in self.registers['rstatus']:
-                    print(f"       {k}: {self.registers['rstatus'][k]}")
+            if v == Register.RSTATUS:
+                for k in self.registers[Register.RSTATUS]:
+                    print(f"       {k}: {self.registers[Register.RSTATUS][k]}")
             else:
                 print(
                     f'       {v}: {hex(self.registers[v])} ({type(self.registers[v])})')
 
-    def execute_instruction(self, instruction):
-        pass
+    def step(self) -> None:
+        # fetch and decode instruction
+        instruction = Instruction(
+            self.memory[self.registers[Register.RIP]: self.registers[Register.RIP]+8], self)
 
-    def execute(self):
-        self.running = True
-        while self.running:
-            # fetch and decode instruction
-            instruction = Instruction(
-                self.memory[self.registers['rip']: self.registers['rip']+8], self)
+        # advance the instruction pointer
+        self.registers[Register.RIP] += 8
 
-            # advance the instruction pointer
-            self.registers['rip'] += 8
-
-            instruction.execute()
+        instruction.execute()
 
 
 class Instruction:
@@ -137,20 +150,20 @@ class Instruction:
     }
 
     register_codes = {
-        b'r0': 'r0',
-        b'r1': 'r1',
-        b'r2': 'r2',
-        b'r3': 'r3',
-        b'r4': 'r4',
-        b'r5': 'r5',
-        b'r6': 'r6',
-        b'r7': 'r7',
-        b'ip': 'rip',
-        b'sp': 'rsp',
-        b'bp': 'rbp',
-        b'rs': 'rres',
-        b'st': 'rstatus',
-        b'er': 'rerror'
+        b'r0': Register.R0,
+        b'r1': Register.R1,
+        b'r2': Register.R2,
+        b'r3': Register.R3,
+        b'r4': Register.R4,
+        b'r5': Register.R5,
+        b'r6': Register.R6,
+        b'r7': Register.R7,
+        b'ip': Register.RIP,
+        b'sp': Register.RSP,
+        b'bp': Register.RBP,
+        b'rs': Register.RRES,
+        b'st': Register.RSTATUS,
+        b'er': Register.RERROR,
     }
 
     def __init__(self, byt: bytes, machine: Machine):
@@ -165,7 +178,8 @@ class Instruction:
                 self.op2 = self.register_codes[byt[4:6]]
 
         if self.address_mode == AddressMode.LITERAL:
-            self.op1 = self.register_codes[byt[2:4]]
+            if b'bt' != byt[2:4]:
+                self.op1 = self.register_codes[byt[2:4]]
             # unpack the literal value
             self.op2 = unpack(byt[4:8])
 
@@ -180,81 +194,93 @@ class Instruction:
             pass
 
     def execute(self) -> None:
-        if self.opcode == Opcode.ADD:
+        if Opcode.ADD == self.opcode:
             # TODO: set overflow/carry flags
-            self.machine.registers[self.op1] += self.op2
+            result = self.machine.registers[self.op1] + self.op2
+            # detect if the sum is greater than 16 bits and set the flag if so
+            self.machine.set_status(
+                StatusFlag.CARRY, result & 0xffff == 0 and result & 0x10000)
+            self.machine.registers[self.op1] = result & 0xffff
 
-        if self.opcode == Opcode.AND:
+        if Opcode.AND == self.opcode:
+            self.machine.registers[self.op1] &= self.op2
+
+        if Opcode.CALL == self.opcode:
             pass
 
-        if self.opcode == Opcode.CALL:
+        if Opcode.COMPARE == self.opcode:
+            result = self.machine.registers[self.op1] - self.op2
+            self.machine.set_status(
+                StatusFlag.ZERO, self.machine.registers[self.op1] - self.op2 == 0)
+            self.machine.registers[Register.RRES] = result
+
+        if Opcode.DIVIDE == self.opcode:
+            # integer division only
+            self.machine.registers[self.op1] //= self.op2
+
+        if Opcode.HALT == self.opcode:
+            self.machine.halt()
+
+        if Opcode.INPUT == self.opcode:
             pass
 
-        if self.opcode == Opcode.COMPARE:
+        if Opcode.JUMP == self.opcode:
+            self.machine.registers[Register.RIP] = self.op2
 
-            self.machine.registers['rstatus']['zero'] = self.machine.registers[self.op1] - \
-                self.op2 == 0
+        if Opcode.JUMPEQ == self.opcode:
+            if self.machine.get_status(StatusFlag.ZERO):
+                self.machine.registers[Register.RIP] = self.op2
 
-        if self.opcode == Opcode.DIVIDE:
+        if Opcode.JUMPGREATER == self.opcode:
+            if self.machine.registers[Register.RRES] > 0:
+                self.machine.registers[Register.RIP] = self.op2
+
+        if Opcode.JUMPGREATEREQ == self.opcode:
+            if self.machine.registers[Register.RRES] >= 0:
+                self.machine.registers[Register.RIP] = self.op2
+
+        if Opcode.JUMPLESS == self.opcode:
+            if self.machine.registers[Register.RRES] < 0:
+                self.machine.registers[Register.RIP] = self.op2
+
+        if Opcode.JUMPLESSEQ == self.opcode:
+            if self.machine.registers[Register.RRES] <= 0:
+                self.machine.registers[Register.RIP] = self.op2
+
+        if Opcode.JUMPNOTEQ == self.opcode:
+            if not self.machine.get_status(StatusFlag.ZERO):
+                self.machine.registers[Register.RIP] = self.op2
+
+        if Opcode.LOAD == self.opcode:
             pass
 
-        if self.opcode == Opcode.HALT:
-            self.machine.running = False
-
-        if self.opcode == Opcode.INPUT:
+        if Opcode.LOADWORD == self.opcode:
             pass
 
-        if self.opcode == Opcode.JUMP:
+        if Opcode.LOADBYTE == self.opcode:
             pass
 
-        if self.opcode == Opcode.JUMPEQ:
-            pass
+        if Opcode.MODULUS == self.opcode:
+            self.machine.registers[self.op1] %= self.op2
 
-        if self.opcode == Opcode.JUMPGREATER:
-            pass
+        if Opcode.MULTIPLY == self.opcode:
+            # TODO: overflow and carry flags
+            self.machine.registers[self.op1] *= self.op2
 
-        if self.opcode == Opcode.JUMPGREATEREQ:
-            pass
-
-        if self.opcode == Opcode.JUMPLESS:
-            pass
-
-        if self.opcode == Opcode.JUMPLESSEQ:
-            pass
-
-        if self.opcode == Opcode.JUMPNOTEQ:
-            if not self.machine.registers['rstatus']['zero']:
-                self.machine.registers['rip'] = self.op2
-
-        if self.opcode == Opcode.LOAD:
-            pass
-
-        if self.opcode == Opcode.LOADWORD:
-            pass
-
-        if self.opcode == Opcode.LOADBYTE:
-            pass
-
-        if self.opcode == Opcode.MODULUS:
-            pass
-
-        if self.opcode == Opcode.MULTIPLY:
-            pass
-
-        if self.opcode == Opcode.MOVE:
+        if Opcode.MOVE == self.opcode:
             self.machine.registers[self.op1] = self.op2
 
-        if self.opcode == Opcode.NOP:
+        if Opcode.NOP == self.opcode:
             # nopnopnopnopnop
             pass
 
-        if self.opcode == Opcode.NOT:
-            pass
+        if Opcode.NOT == self.opcode:
+            self.machine.registers[self.op1] = ~self.machine.registers[self.op1]
 
-        if self.opcode == Opcode.OR:
-            pass
+        if Opcode.OR == self.opcode:
+            self.machine.registers[self.op1] |= self.op2
 
-        if self.opcode == Opcode.OUTPUT:
+        if Opcode.OUTPUT == self.opcode:
             # this instruction is a little weird
             if self.address_mode == AddressMode.LITERAL:
                 # take the least significant byte of the register value
@@ -270,43 +296,43 @@ class Instruction:
                 char = chr(
                     self.machine.memory[self.machine.registers[self.op2]])
 
-            print(f'{char}', end='')
+            sys.stdout.write(char)
 
-        if self.opcode == Opcode.POP:
+        if Opcode.POP == self.opcode:
             pass
 
-        if self.opcode == Opcode.POPBYTE:
+        if Opcode.POPBYTE == self.opcode:
             pass
 
-        if self.opcode == Opcode.PUSH:
+        if Opcode.PUSH == self.opcode:
             pass
 
-        if self.opcode == Opcode.PUSHBYTE:
+        if Opcode.PUSHBYTE == self.opcode:
             pass
 
-        if self.opcode == Opcode.RETURN:
+        if Opcode.RETURN == self.opcode:
             pass
 
-        if self.opcode == Opcode.SHIFTLEFT:
+        if Opcode.SHIFTLEFT == self.opcode:
             pass
 
-        if self.opcode == Opcode.SHIFTRIGHT:
+        if Opcode.SHIFTRIGHT == self.opcode:
             pass
 
-        if self.opcode == Opcode.STORE:
+        if Opcode.STORE == self.opcode:
             pass
 
-        if self.opcode == Opcode.STOREBYTE:
+        if Opcode.STOREBYTE == self.opcode:
             pass
 
-        if self.opcode == Opcode.STOREWORD:
+        if Opcode.STOREWORD == self.opcode:
             pass
 
-        if self.opcode == Opcode.SUBTRACT:
+        if Opcode.SUBTRACT == self.opcode:
             pass
 
-        if self.opcode == Opcode.SYSCALL:
+        if Opcode.SYSCALL == self.opcode:
             pass
 
-        if self.opcode == Opcode.XOR:
-            pass
+        if Opcode.XOR == self.opcode:
+            self.machine.registers[self.op1] ^= self.op2

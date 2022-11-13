@@ -56,6 +56,34 @@ class Opcode(Enum):
     XOR = auto()
 
 
+class Register(Enum):
+    R0 = auto()
+    R1 = auto()
+    R2 = auto()
+    R3 = auto()
+    R4 = auto()
+    R5 = auto()
+    R6 = auto()
+    R7 = auto()
+    RIP = auto()
+    RSP = auto()
+    RBP = auto()
+    RRES = auto()
+    RSTATUS = auto()
+    RERROR = auto()
+
+
+class StatusFlag(Enum):
+    CARRY = auto()
+    OVERFLOW = auto()
+    SIGN = auto()
+    ZERO = auto()
+
+
+class SystemCall(Enum):
+    EXIT = auto()
+
+
 class VMError(Enum):
     # error codes for the system.
     # TODO: write a function for giving human friendly descriptions of these codes.
