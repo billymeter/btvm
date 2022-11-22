@@ -1,7 +1,7 @@
 .hello: "hello, world\n"    ;; length is 13
 
-move r0, 0                  ;; counter
-move r1, hello              ;; message
+load r0, 0                  ;; counter
+load r1, &hello             ;; message
 loop:
     output r1               ;; output character
     add r0, 1               ;; counter++

@@ -13,6 +13,7 @@
 - all opcodes are ascii
 - 16-bit arch
 - risc
+- byte addressable memory
 - c-style strings
 - big endian
 - 64-bit fixed width instructions
@@ -107,7 +108,8 @@ half word = 8 bits
 
 ## system calls
 
-system calls each take at most four parameters, with them passed in order in registers r0-r3.
+system calls each take at most four parameters, with them passed in order in registers r1-r4. syscall
+number is stored in r0
 
 - `exit` -- exits the program with a return code
 - `open` -- opens a file descriptor

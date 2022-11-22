@@ -1,10 +1,4 @@
-from enum import Enum, auto
-# from struct import pack as s_pack
-from struct import unpack as s_unpack
-
-
-def unpack(value):
-    return s_unpack(">l", value)[0]
+from enum import auto, Enum, IntFlag
 
 
 class AddressMode(Enum):
@@ -13,6 +7,7 @@ class AddressMode(Enum):
     MEMORY = auto()
     NONE = auto()
     REGISTER = auto()
+    REGISTERDEREF = auto()
 
 
 class Opcode(Enum):
@@ -73,7 +68,7 @@ class Register(Enum):
     RERROR = auto()
 
 
-class StatusFlag(Enum):
+class StatusFlag(IntFlag):
     CARRY = auto()
     OVERFLOW = auto()
     SIGN = auto()
@@ -97,3 +92,107 @@ class VMError(Enum):
     NO_PERMISSIONS = auto()
     END_OF_FILE = auto()
     BAD_FILE_DESCRIPTOR = auto()
+
+
+opcodes = {
+    b'ad': (Opcode.ADD, AddressMode.LITERAL),
+    b'aD': (Opcode.ADD, AddressMode.MEMORY),
+    b'Ad': (Opcode.ADD, AddressMode.REGISTER),
+    b'an': (Opcode.AND, AddressMode.LITERAL),
+    b'An': (Opcode.AND, AddressMode.REGISTER),
+    b'cl': (Opcode.CALL, AddressMode.LITERAL),
+    b'Cl': (Opcode.CALL, AddressMode.REGISTER),
+    b'cp': (Opcode.COMPARE, AddressMode.LITERAL),
+    b'Cp': (Opcode.COMPARE, AddressMode.REGISTER),
+    b'CP': (Opcode.COMPARE, AddressMode.REGISTERDEREF),
+    b'dv': (Opcode.DIVIDE, AddressMode.LITERAL),
+    b'dV': (Opcode.DIVIDE, AddressMode.MEMORY),
+    b'Dv': (Opcode.DIVIDE, AddressMode.REGISTER),
+    b'HT': (Opcode.HALT, AddressMode.NONE),
+    b'iN': (Opcode.INPUT, AddressMode.MEMORY),
+    b'In': (Opcode.INPUT, AddressMode.REGISTER),
+    b'IN': (Opcode.INPUT, AddressMode.REGISTERDEREF),
+    b'jp': (Opcode.JUMP, AddressMode.LITERAL),
+    b'Jp': (Opcode.JUMP, AddressMode.REGISTER),
+    b'j=': (Opcode.JUMPEQ, AddressMode.LITERAL),
+    b'J=': (Opcode.JUMPEQ, AddressMode.REGISTER),
+    b'j>': (Opcode.JUMPGREATER, AddressMode.LITERAL),
+    b'J>': (Opcode.JUMPGREATER, AddressMode.REGISTER),
+    b'j}': (Opcode.JUMPGREATEREQ, AddressMode.LITERAL),
+    b'J}': (Opcode.JUMPGREATEREQ, AddressMode.REGISTER),
+    b'j<': (Opcode.JUMPLESS, AddressMode.LITERAL),
+    b'J<': (Opcode.JUMPLESS, AddressMode.REGISTER),
+    b'j{': (Opcode.JUMPLESSEQ, AddressMode.LITERAL),
+    b'J{': (Opcode.JUMPLESSEQ, AddressMode.REGISTER),
+    b'j!': (Opcode.JUMPNOTEQ, AddressMode.LITERAL),
+    b'J!': (Opcode.JUMPNOTEQ, AddressMode.REGISTER),
+    b'ld': (Opcode.LOAD, AddressMode.LITERAL),
+    b'lD': (Opcode.LOAD, AddressMode.MEMORY),
+    b'Ld': (Opcode.LOAD, AddressMode.REGISTER),
+    b'LD': (Opcode.LOAD, AddressMode.REGISTERDEREF),
+    b'lb': (Opcode.LOADBYTE, AddressMode.LITERAL),
+    b'lB': (Opcode.LOADBYTE, AddressMode.MEMORY),
+    b'Lb': (Opcode.LOADBYTE, AddressMode.REGISTER),
+    b'LB': (Opcode.LOADBYTE, AddressMode.REGISTERDEREF),
+    b'md': (Opcode.MODULUS, AddressMode.LITERAL),
+    b'mD': (Opcode.MODULUS, AddressMode.MEMORY),
+    b'Md': (Opcode.MODULUS, AddressMode.REGISTER),
+    b'my': (Opcode.MULTIPLY, AddressMode.LITERAL),
+    b'mY': (Opcode.MULTIPLY, AddressMode.MEMORY),
+    b'My': (Opcode.MULTIPLY, AddressMode.REGISTER),
+    b'NO': (Opcode.NOP, AddressMode.NONE),
+    b'nt': (Opcode.NOT, AddressMode.LITERAL),
+    b'Nt': (Opcode.NOT, AddressMode.REGISTER),
+    b'or': (Opcode.OR, AddressMode.LITERAL),
+    b'Or': (Opcode.OR, AddressMode.REGISTER),
+    b'ot': (Opcode.OUTPUT, AddressMode.LITERAL),
+    b'oT': (Opcode.OUTPUT, AddressMode.MEMORY),
+    b'Ot': (Opcode.OUTPUT, AddressMode.REGISTER),
+    b'po': (Opcode.POP, AddressMode.LITERAL),
+    b'Po': (Opcode.POP, AddressMode.REGISTER),
+    b'pb': (Opcode.POPBYTE, AddressMode.LITERAL),
+    b'Pb': (Opcode.POPBYTE, AddressMode.REGISTER),
+    b'pu': (Opcode.PUSH, AddressMode.LITERAL),
+    b'Pu': (Opcode.PUSH, AddressMode.REGISTER),
+    b'py': (Opcode.PUSHBYTE, AddressMode.LITERAL),
+    b'Py': (Opcode.PUSHBYTE, AddressMode.REGISTER),
+    b'RT': (Opcode.RETURN, AddressMode.NONE),
+    b'sr': (Opcode.STORE, AddressMode.LITERAL),
+    b'Sr': (Opcode.STORE, AddressMode.REGISTER),
+    b'sy': (Opcode.STOREBYTE, AddressMode.MEMORY),
+    b'Sy': (Opcode.STOREBYTE, AddressMode.REGISTER),
+    b'sb': (Opcode.SUBTRACT, AddressMode.LITERAL),
+    b'sB': (Opcode.SUBTRACT, AddressMode.MEMORY),
+    b'Sb': (Opcode.SUBTRACT, AddressMode.REGISTER),
+    b'SC': (Opcode.SYSCALL, AddressMode.NONE),
+    b'xr': (Opcode.XOR, AddressMode.LITERAL),
+    b'Xr': (Opcode.XOR, AddressMode.REGISTER),
+}
+
+register_codes = {
+    b'bt': None,
+    b'r0': Register.R0,
+    b'r1': Register.R1,
+    b'r2': Register.R2,
+    b'r3': Register.R3,
+    b'r4': Register.R4,
+    b'r5': Register.R5,
+    b'r6': Register.R6,
+    b'r7': Register.R7,
+    b'ip': Register.RIP,
+    b'sp': Register.RSP,
+    b'bp': Register.RBP,
+    b'rs': Register.RRES,
+    b'st': Register.RSTATUS,
+    b'er': Register.RERROR,
+}
+
+
+syscall_table = {
+    b'a': SystemCall.EXIT,
+    b'b': SystemCall.OPEN,
+    b'c': SystemCall.READ,
+    b'd': SystemCall.WRITE,
+    b'e': SystemCall.CLOSE,
+    b'f': SystemCall.RANDOM,
+}
