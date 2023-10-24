@@ -1,8 +1,8 @@
-from util import AddressMode
-from util import Opcode, opcodes
-from util import Register, register_codes
-from util import StatusFlag
-from util import SystemCall, syscall_table
+from .util import AddressMode
+from .util import Opcode, opcodes
+from .util import Register, register_codes
+from .util import StatusFlag
+from .util import SystemCall, syscall_table
 import sys
 
 
@@ -22,8 +22,8 @@ class Machine:
             Register.R6: 0,
             Register.R7: 0,
             Register.RIP: int(program[4:8], 16),
-            Register.RSP: 0xffff,
-            Register.RBP: 0xffff,
+            Register.RSP: 0xFFFF,
+            Register.RBP: 0xFFFF,
             Register.RRES: 0,
             Register.RERROR: 0,
             Register.RSTATUS: 0,
@@ -46,27 +46,29 @@ class Machine:
         value = self.memory[self.registers[Register.RSP]]
         self.registers[Register.RSP] += 1
 
-        if self.registers[Register.RSP] > 0xffff or self.registers[Register.RSP] < 0:
+        if self.registers[Register.RSP] > 0xFFFF or self.registers[Register.RSP] < 0:
             self.running = False
             raise RuntimeError(
-                "stack pointer moved out of bounds! must be between 0 and 0xffff!")
+                "stack pointer moved out of bounds! must be between 0 and 0xffff!"
+            )
         return value
 
     def push(self, value: bytes) -> None:
         # have to push these in reverse order since the stack grows down
-        lsb = value & 0xff
+        lsb = value & 0xFF
         self.pushbyte(lsb)
-        msb = (value & 0xff00) >> 8
+        msb = (value & 0xFF00) >> 8
         self.pushbyte(msb)
 
     def pushbyte(self, value: bytes) -> None:
         self.registers[Register.RSP] -= 1
 
-        if self.registers[Register.RSP] > 0xffff or self.registers[Register.RSP] < 0:
+        if self.registers[Register.RSP] > 0xFFFF or self.registers[Register.RSP] < 0:
             self.running = False
             raise RuntimeError(
-                "stack pointer moved out of bounds! must be between 0 and 0xffff!")
-        self.memory[self.registers[Register.RSP]] = value & 0xff
+                "stack pointer moved out of bounds! must be between 0 and 0xffff!"
+            )
+        self.memory[self.registers[Register.RSP]] = value & 0xFF
 
     def run(self) -> None:
         self.running = True
@@ -74,21 +76,32 @@ class Machine:
             self.step()
 
     def status(self) -> None:
-        print('registers:')
+        print("registers:")
         for k, v in self.registers.items():
-            print(f'  {k}: {hex(v)}')
+            print(f"  {k}: {hex(v)}")
 
     def step(self) -> None:
         # fetch and decode instruction
         instruction = Instruction(
-            self.memory[self.registers[Register.RIP]: self.registers[Register.RIP]+8], self)
+            self.memory[
+                self.registers[Register.RIP] : self.registers[Register.RIP] + 8
+            ],
+            self,
+        )
 
         # advance the instruction pointer
         self.registers[Register.RIP] += 8
 
         instruction.execute()
 
-    def systemcall(self, syscall: int, argument_1: int, argument_2: int, argument_3: int, argument_4: int) -> int:
+    def systemcall(
+        self,
+        syscall: int,
+        argument_1: int,
+        argument_2: int,
+        argument_3: int,
+        argument_4: int,
+    ) -> int:
         if SystemCall.EXIT == syscall:
             sys.exit(argument_1)
 
@@ -116,10 +129,11 @@ class Instruction:
             self.opcode, self.address_mode = opcodes[opcode]
         except KeyError as invalid:
             print(
-                f'opcode {invalid} at address {hex(self.machine.registers[Register.RIP])} is not a valid opcode!')
-            print('reg dump:')
+                f"opcode {invalid} at address {hex(self.machine.registers[Register.RIP])} is not a valid opcode!"
+            )
+            print("reg dump:")
             for k, v in self.machine.registers.items():
-                print(f'  {k}: {hex(v)}')
+                print(f"  {k}: {hex(v)}")
             self.machine.running = False
 
         # set the destination register operand
@@ -149,7 +163,7 @@ class Instruction:
 
     def execute(self) -> None:
         if Opcode.ADD == self.opcode:
-            self.machine.registers[self.op1] += self.op2 & 0xffff
+            self.machine.registers[self.op1] += self.op2 & 0xFFFF
 
         if Opcode.AND == self.opcode:
             self.machine.registers[self.op1] &= self.op2
@@ -172,7 +186,7 @@ class Instruction:
 
         if Opcode.DIVIDE == self.opcode:
             # integer division only
-            self.machine.registers[self.op1] //= self.op2 & 0xffff
+            self.machine.registers[self.op1] //= self.op2 & 0xFFFF
 
         if Opcode.HALT == self.opcode:
             self.machine.halt()
@@ -214,10 +228,10 @@ class Instruction:
             self.machine.registers[self.op1] = self.machine.memory[self.op2]
 
         if Opcode.MODULUS == self.opcode:
-            self.machine.registers[self.op1] %= self.op2 & 0xffff
+            self.machine.registers[self.op1] %= self.op2 & 0xFFFF
 
         if Opcode.MULTIPLY == self.opcode:
-            self.machine.registers[self.op1] *= self.op2 & 0xffff
+            self.machine.registers[self.op1] *= self.op2 & 0xFFFF
 
         if Opcode.NOP == self.opcode:
             # nopnopnopnopnop
@@ -233,17 +247,15 @@ class Instruction:
             # this instruction is a little weird
             if self.address_mode == AddressMode.LITERAL:
                 # take the least significant byte of the register value
-                char = chr(self.machine.registers[self.op1] & 0xff)
+                char = chr(self.machine.registers[self.op1] & 0xFF)
 
             if self.address_mode == AddressMode.REGISTER:
                 # dereference value stored in the register
-                char = chr(
-                    self.machine.memory[self.machine.registers[self.op1]])
+                char = chr(self.machine.memory[self.machine.registers[self.op1]])
 
             if self.address_mode == AddressMode.MEMORY:
                 # output the value at the address in the operand
-                char = chr(
-                    self.machine.memory[self.machine.registers[self.op2]])
+                char = chr(self.machine.memory[self.machine.registers[self.op2]])
 
             sys.stdout.write(char)
 
@@ -267,10 +279,10 @@ class Instruction:
             self.machine.memory[self.op1] = self.op2
 
         if Opcode.STOREBYTE == self.opcode:
-            self.machine.memory[self.op1] = self.op2 & 0xff
+            self.machine.memory[self.op1] = self.op2 & 0xFF
 
         if Opcode.SUBTRACT == self.opcode:
-            self.machine.registers[self.op1] -= self.op2 & 0xff
+            self.machine.registers[self.op1] -= self.op2 & 0xFF
 
         if Opcode.SYSCALL == self.opcode:
             syscall = syscall_table[self.registers[Register.R0]]
@@ -278,8 +290,13 @@ class Instruction:
             argument_2 = self.registers[Register.R2]
             argument_3 = self.registers[Register.R3]
             argument_4 = self.registers[Register.R4]
-            self.machine.systemcall(syscall=syscall, argument_1=argument_1,
-                                    argument_2=argument_2, argument_3=argument_3, argument_4=argument_4)
+            self.machine.systemcall(
+                syscall=syscall,
+                argument_1=argument_1,
+                argument_2=argument_2,
+                argument_3=argument_3,
+                argument_4=argument_4,
+            )
 
         if Opcode.XOR == self.opcode:
             self.machine.registers[self.op1] ^= self.op2

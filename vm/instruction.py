@@ -4,7 +4,8 @@ from struct import unpack
 import sys
 
 
-# TODO: the individual instructions don't need if blocks for the addressing modes because that's all handled in the Instruction constructor. Remove all of that crap to shorten the length of this file.
+# TODO: the individual instructions don't need if blocks for the addressing modes because that's all handled in the
+# Instruction constructor. Remove all of that crap to shorten the length of this file.
 
 class AddressMode(Enum):
     REGISTER = 1
