@@ -93,8 +93,11 @@ def parse_program(program):
     prog = Program()
     # parse line by line
     for line in program.split("\n"):
+        # skip blank lines
+        if not line:
+            continue
         # strip off comments and whitespace
-        line = parse_line(line.strip().split(";;")[0].strip(), prog)
+        line = parse_line(line.strip().split(";")[0].strip(), prog)
         print(line)
 
 
