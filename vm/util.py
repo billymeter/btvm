@@ -85,14 +85,33 @@ class SystemCall(Enum):
     RANDOM = auto()
 
 
+class FileMode(Enum):
+    READ = 0x1
+    WRITE = 0x2
+    APPEND = 0x4
+
+
 class VMError(Enum):
     # error codes for the system.
-    # TODO: write a function for giving human friendly descriptions of these codes.
     NO_ERROR = auto()
     FILE_NOT_FOUND = auto()
     NO_PERMISSIONS = auto()
     END_OF_FILE = auto()
     BAD_FILE_DESCRIPTOR = auto()
+    UNKNOWN = auto()
+
+
+def error_description(error_num):
+    if error_num == VMError.NO_ERROR:
+        return "no error"
+    if error_num == VMError.FILE_NOT_FOUND:
+        return "file not found"
+    if error_num == VMError.NO_PERMISSIONS:
+        return "insufficient permissions"
+    if error_num == VMError.END_OF_FILE:
+        return "end of file"
+    if error_num == VMError.BAD_FILE_DESCRIPTOR:
+        return "invalid file descriptor"
 
 
 opcodes = {

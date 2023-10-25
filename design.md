@@ -118,13 +118,13 @@ number is stored in r0
 - `close` -- closes a file descriptor
 - `random` -- system provides a random 16-bit number
 
-### exit `0x61`
+### exit `0xa`
 
 `int exit()`
 
 terminates btvm and gives a status code stored in the `rres` register back to the host operating system.
 
-### open `0x62`
+### open `0xb`
 
 `int open(char* path, int mode)`
 
@@ -140,25 +140,25 @@ modes:
 
 <!-- | 0x8  | binary mode | -->
 
-### read `0x63`
+### read `0xc`
 
 `int read(int filedes, void *buf, uint nbyte)`
 
 reads `nbytes` from `filedes` into `buf`. returns the number of bytes read from `filedes` in `rres`. on error, `rres=-1` and `rerror` is set to the error code.
 
-### write `0x64`
+### write `0xd`
 
 `int write(int filedes, void *buf, uint nbyte)`
 
 writes `nbyte` bytes from `buf` to `filedes`. returns the number of bytes written in `rres`. on error, `rres=-1` and `rerror` is set to the error code.
 
-### close `0x65`
+### close `0xe`
 
 `int close(int filedes)`
 
 closes file descriptor `filedes`. success sets `rres` to `0`. on error `rres` set to `-1` and `rerror` contains error code.
 
-### random `0x66`
+### random `0xf`
 
 `int random()`
 
@@ -176,7 +176,7 @@ generates a random 16-bit number and puts the result in `rres`. `rres` is set to
 
 ## calling convention
 
-first 4 args in r0-r3 in reverse order. rest are passed on the stack in reverse order like cdecl. callee responsible for saving register values. caller responsible for cleaning up the stack.
+first 4 args in r1-r4. rest are passed on the stack in reverse order like cdecl. callee responsible for saving register values. caller responsible for cleaning up the stack.
 
 ## references
 

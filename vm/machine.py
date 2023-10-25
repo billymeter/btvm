@@ -3,6 +3,7 @@ from .util import Opcode, opcodes
 from .util import Register, register_codes
 from .util import StatusFlag
 from .util import SystemCall, syscall_table
+from .util import VMError
 import sys
 
 
@@ -29,7 +30,8 @@ class Machine:
             Register.RSTATUS: 0,
         }
 
-        self.open_file_descriptors: dict()
+        self.open_file_descriptors: {0: sys.stdout, 1: sys.stdin, 2: sys.stderr}
+        self.files_open = len(self.open_file_descriptors)
 
         # machine is running flag
         self.running = False
@@ -101,24 +103,53 @@ class Machine:
         argument_2: int,
         argument_3: int,
         argument_4: int,
-    ) -> int:
+    ):
         if SystemCall.EXIT == syscall:
             sys.exit(argument_1)
 
         if SystemCall.OPEN == syscall:
-            pass
+            # get the path string from memory
+            end_point = self.memory.find(b"\\0", argument_1)
+            path = self.memory[argument_1:end_point]
+            try:
+                fd = open(path, argument_2)
+                self.files_open += 1
+                self.open_file_descriptors[self.files_open] = fd
+                self.registers[Register.RERROR] = 0
+                self.registers[Register.RRES] = self.files_open
+            except FileNotFoundError:
+                self.registers[Register.RERROR] = VMError.FILE_NOT_FOUND
+                self.registers[Register.RRES] = -1
+            except PermissionError:
+                self.registers[Register.RERROR] = VMError.NO_PERMISSIONS
+                self.registers[Register.RRES] = -1
+            return
 
         if SystemCall.READ == syscall:
-            pass
+            return
 
         if SystemCall.WRITE == syscall:
-            pass
+            return
 
         if SystemCall.CLOSE == syscall:
-            pass
+            try:
+                self.open_file_descriptors[argument_1].close()
+                del self.open_file_descriptors[argument_1]
+                self.registers[Register.RRES] = 0
+            except KeyError:
+                self.registers[Register.RERROR] = VMError.BAD_FILE_DESCRIPTOR
+                self.registers[Register.RRES] = -1
+            return
 
         if SystemCall.RANDOM == syscall:
-            pass
+            try:
+                with open("/dev/urandom", "rb") as f:
+                    self.registers[Register.RRES] = int(f.read(4).hex(), 16)
+                    self.registers[Register.RERROR] = 0
+            except:
+                self.registers[Register.RRES] = -1
+                self.registers[Register.RERROR] = VMError.UNKNOWN
+            return
 
 
 class Instruction:
@@ -282,7 +313,7 @@ class Instruction:
             self.machine.memory[self.op1] = self.op2 & 0xFF
 
         if Opcode.SUBTRACT == self.opcode:
-            self.machine.registers[self.op1] -= self.op2 & 0xFF
+            self.machine.registers[self.op1] -= self.op2 & 0xFFFF
 
         if Opcode.SYSCALL == self.opcode:
             syscall = syscall_table[self.registers[Register.R0]]
