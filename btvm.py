@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+the btvm virtual machine
+"""
+
 from vm.machine import Machine
 import sys
 

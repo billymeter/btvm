@@ -3,67 +3,9 @@
 btvm assembler lexer
 """
 
-from enum import auto, Enum
+from common.common import *
 import shlex
 import sys
-
-
-class Type(Enum):
-    ADD = auto()
-    AND = auto()
-    CALL = auto()
-    COMPARE = auto()
-    DIVIDE = auto()
-    HALT = auto()
-    INPUT = auto()
-    JUMP = auto()
-    JUMPEQ = auto()
-    JUMPGREATER = auto()
-    JUMPGREATEREQ = auto()
-    JUMPLESS = auto()
-    JUMPLESSEQ = auto()
-    JUMPNOTEQ = auto()
-    LOAD = auto()
-    LOADBYTE = auto()
-    LOADWORD = auto()
-    MODULUS = auto()
-    MOVE = auto()
-    MULTIPLY = auto()
-    NOP = auto()
-    NOT = auto()
-    OR = auto()
-    OUTPUT = auto()
-    POP = auto()
-    POPBYTE = auto()
-    PUSH = auto()
-    PUSHBYTE = auto()
-    RETURN = auto()
-    SHIFTLEFT = auto()
-    SHIFTRIGHT = auto()
-    STORE = auto()
-    STOREBYTE = auto()
-    STOREWORD = auto()
-    SUBTRACT = auto()
-    SYSCALL = auto()
-    XOR = auto()
-
-    LABEL = auto()
-    LITERAL = auto()
-    REGISTER = auto()
-    VARIABLE = auto()
-
-
-class Token:
-    def __init__(self, type, value, line_num):
-        self.type = type
-        self.value = value
-        self.line_num = line_num
-
-    def __str__(self):
-        return f"{self.type}: {self.value} at line {self.line_num}"
-
-    def __repr__(self):
-        return f"{self.type}: {self.value} at line {self.line_num}"
 
 
 def lex_word(word, line_num):
@@ -203,5 +145,9 @@ if __name__ == "__main__":
         source = f.readlines()
     lexed = lex(source)
 
+    last_line = 1
     for token in lexed:
-        print(token)
+        if token.line_num != last_line:
+            print()
+            last_line = token.line_num
+        print(token, end=", ")

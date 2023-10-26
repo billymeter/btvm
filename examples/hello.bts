@@ -1,4 +1,4 @@
-.heLlo: "hello, world\n"   ;; length is 13
+.hello: "hello, world\n"   ;; length is 13
 
 load r0 0                  ;; counter
 load r1 hello              ;; message

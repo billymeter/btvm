@@ -153,7 +153,7 @@ opcodes = {
     b"my": (Opcode.MULTIPLY, AddressMode.LITERAL),
     b"mY": (Opcode.MULTIPLY, AddressMode.MEMORY),
     b"My": (Opcode.MULTIPLY, AddressMode.REGISTER),
-    b"NO": (Opcode.NOP, AddressMode.NONE),
+    b"NP": (Opcode.NOP, AddressMode.NONE),
     b"nt": (Opcode.NOT, AddressMode.LITERAL),
     b"Nt": (Opcode.NOT, AddressMode.REGISTER),
     b"or": (Opcode.OR, AddressMode.LITERAL),
@@ -209,3 +209,57 @@ syscall_table = {
     b"e": SystemCall.CLOSE,
     b"f": SystemCall.RANDOM,
 }
+
+
+class Type(Enum):
+    ADD = auto()
+    AND = auto()
+    CALL = auto()
+    COMPARE = auto()
+    DIVIDE = auto()
+    HALT = auto()
+    INPUT = auto()
+    JUMP = auto()
+    JUMPEQ = auto()
+    JUMPGREATER = auto()
+    JUMPGREATEREQ = auto()
+    JUMPLESS = auto()
+    JUMPLESSEQ = auto()
+    JUMPNOTEQ = auto()
+    LOAD = auto()
+    LOADBYTE = auto()
+    MODULUS = auto()
+    MULTIPLY = auto()
+    NOP = auto()
+    NOT = auto()
+    OR = auto()
+    OUTPUT = auto()
+    POP = auto()
+    POPBYTE = auto()
+    PUSH = auto()
+    PUSHBYTE = auto()
+    RETURN = auto()
+    STORE = auto()
+    STOREBYTE = auto()
+    SUBTRACT = auto()
+    SYSCALL = auto()
+    XOR = auto()
+
+    DEREF = auto()
+    LABEL = auto()
+    LITERAL = auto()
+    REGISTER = auto()
+    VARIABLE = auto()
+
+
+class Token:
+    def __init__(self, type, value, line_num):
+        self.type = type
+        self.value = value
+        self.line_num = line_num
+
+    def __str__(self):
+        return f"{self.line_num}:{self.type}: {self.value}"
+
+    def __repr__(self):
+        return f"{self.line_num}:{self.type}: {self.value}"

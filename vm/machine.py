@@ -1,8 +1,4 @@
-from .util import AddressMode
-from .util import Opcode, opcodes
-from .util import Register, register_codes
-from .util import SystemCall, syscall_table
-from .util import VMError
+from common.common import *
 import sys
 
 
