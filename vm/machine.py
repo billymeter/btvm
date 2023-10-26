@@ -1,7 +1,6 @@
 from .util import AddressMode
 from .util import Opcode, opcodes
 from .util import Register, register_codes
-from .util import StatusFlag
 from .util import SystemCall, syscall_table
 from .util import VMError
 import sys
@@ -27,11 +26,10 @@ class Machine:
             Register.RBP: 0xFFFF,
             Register.RRES: 0,
             Register.RERROR: 0,
-            Register.RSTATUS: 0,
         }
 
         self.open_file_descriptors: {0: sys.stdout, 1: sys.stdin, 2: sys.stderr}
-        self.files_open = len(self.open_file_descriptors)
+        self.files_open = 2
 
         # machine is running flag
         self.running = False
@@ -212,8 +210,8 @@ class Instruction:
             result = self.machine.registers[self.op1] - self.op2
             self.machine.registers[Register.RRES] = result
 
-            if result == 0:
-                self.machine.registers[Register.RSTATUS] |= StatusFlag.ZERO
+            # if result == 0:
+            #     self.machine.registers[Register.RSTATUS] |= StatusFlag.ZERO
 
         if Opcode.DIVIDE == self.opcode:
             # integer division only
@@ -229,7 +227,7 @@ class Instruction:
             self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPEQ == self.opcode:
-            if self.machine.registers[Register.RSTATUS] & StatusFlag.ZERO:
+            if self.machine.registers[Register.RRES] == 0:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPGREATER == self.opcode:
@@ -249,7 +247,7 @@ class Instruction:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPNOTEQ == self.opcode:
-            if ~self.machine.registers[Register.RSTATUS] & StatusFlag.ZERO:
+            if self.machine.registers[Register.RRES] != 0:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.LOAD == self.opcode:

@@ -1,4 +1,4 @@
-from enum import auto, Enum, IntFlag
+from enum import auto, Enum
 
 
 class AddressMode(Enum):
@@ -67,13 +67,6 @@ class Register(Enum):
     RRES = auto()
     RSTATUS = auto()
     RERROR = auto()
-
-
-class StatusFlag(IntFlag):
-    CARRY = auto()
-    OVERFLOW = auto()
-    SIGN = auto()
-    ZERO = auto()
 
 
 class SystemCall(Enum):
