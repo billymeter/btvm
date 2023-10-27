@@ -6,13 +6,6 @@ btvm assembler parser
 from common.common import *
 import sys
 
-
-opcode_lookup = {
-    (opcode, address_mode): code for code, (opcode, address_mode) in opcodes.items()
-}
-
-syscall_lookup = {syscall: opcode for opcode, syscall in syscall_table.items()}
-
 symbol_table = {}
 
 
@@ -24,11 +17,30 @@ def get_address_mode(operand1, operand2):
 
 
 def add_token(token, iter):
-    first = next(iter)
-    if first.type == Type.REGISTER:
-        opcode = b"Ad"
-    second = next(iter)
-    print(f"{first} {second}")
+    op1 = next(iter)
+    op2 = next(iter)
+
+    # first operand must be a register
+    if op1.type != Type.REGISTER:
+        print(
+            f"syntax error on line {token.line_num}. first operand to add instruction must be a register."
+        )
+        sys.exit(1)
+    if op2.type == Type.REGISTER:
+        mode = AddressMode.REGISTER
+    elif op2.type == Type.LITERAL and isinstance(op2.value, int):
+        mode = AddressMode.LITERAL
+    elif op2.type == Type.DEREF and isinstance(op2.value, int):
+        mode = AddressMode.MEMORY
+    elif op2.type == Type.DEREF:
+        mode = AddressMode.REGISTERDEREF
+    else:
+        print(
+            f"syntax error on line {token.line_num}. second operand, {op2.value}, to add instruction must be a register, literal value, or a dereference."
+        )
+        sys.exit(1)
+
+    return Node(opcode=Opcode.ADD, address_mode=mode, op1=op1.value, op2=op2.value)
 
 
 def and_token(token, iter):
@@ -40,7 +52,30 @@ def call_token(token, iter):
 
 
 def compare_token(token, iter):
-    pass
+    op1 = next(iter)
+    op2 = next(iter)
+
+    # first operand must be a register
+    if op1.type != Type.REGISTER:
+        print(
+            f"syntax error on line {token.line_num}. first operand to compare instruction must be a register."
+        )
+        sys.exit(1)
+    if op2.type == Type.REGISTER:
+        mode = AddressMode.REGISTER
+    elif op2.type == Type.LITERAL and isinstance(op2.value, int):
+        mode = AddressMode.LITERAL
+    elif op2.type == Type.DEREF and isinstance(op2.value, int):
+        mode = AddressMode.MEMORY
+    elif op2.type == Type.DEREF:
+        mode = AddressMode.REGISTERDEREF
+    else:
+        print(
+            f"syntax error on line {token.line_num}. second operand, {op2.value}, to compare instruction must be a register, literal value, or a dereference."
+        )
+        sys.exit(1)
+
+    return Node(opcode=Opcode.COMPARE, address_mode=mode, op1=op1.value, op2=op2.value)
 
 
 def divide_token(token, iter):
@@ -48,7 +83,7 @@ def divide_token(token, iter):
 
 
 def halt_token(token, iter):
-    pass
+    return Node(opcode=Opcode.HALT, address_mode=AddressMode.NONE, op1=None, op2=None)
 
 
 def input_token(token, iter):
@@ -80,13 +115,62 @@ def jumplesseq_token(token, iter):
 
 
 def jumpnoteq_token(token, iter):
-    pass
+    op1 = next(iter)
+    resolve_symbol = False
+    val = op1.value
+    if op1.type == Type.REGISTER:
+        mode = AddressMode.REGISTER
+    elif op1.type == Type.LITERAL:
+        mode = AddressMode.LITERAL
+        if isinstance(op1.value, str):  # type(0) != type(op1.value):
+            if op1.value in symbol_table:
+                val = symbol_table[op1.value]
+            else:
+                resolve_symbol = True
+    else:
+        print(
+            f"syntax error on line {token.line_num}. first operand to jumpnoteq instruction must be a register, literal value, or a label name."
+        )
+        sys.exit(1)
+    return Node(
+        opcode=Opcode.JUMPNOTEQ,
+        address_mode=mode,
+        op1=None,
+        op2=val,
+        resolve_symbol=resolve_symbol,
+    )
 
 
 def load_token(token, iter):
     op1 = next(iter)
     op2 = next(iter)
-    print(f"load {op1.value} {op2.value}")
+    resolve_symbol = False
+
+    # first operand must be a register
+    if op1.type != Type.REGISTER:
+        print(
+            f"syntax error on line {token.line_num}. first operand to load instruction must be a register."
+        )
+        sys.exit(1)
+    if op2.type == Type.REGISTER:
+        mode = AddressMode.REGISTER
+    elif op2.type == Type.LITERAL and isinstance(op2.value, int):
+        mode = AddressMode.LITERAL
+    elif op2.type == Type.DEREF and isinstance(op2.value, int):
+        mode = AddressMode.MEMORY
+    elif op2.type == Type.DEREF:
+        mode = AddressMode.REGISTERDEREF
+    else:
+        mode = AddressMode.LITERAL
+        resolve_symbol = True
+
+    return Node(
+        opcode=Opcode.LOAD,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        resolve_symbol=resolve_symbol,
+    )
 
 
 def loadbyte_token(token, iter):
@@ -102,7 +186,7 @@ def multiply_token(token, iter):
 
 
 def nop_token(token, iter):
-    pass
+    return Node(opcode=Opcode.NOP, address_mode=AddressMode.NONE, op1=None, op2=None)
 
 
 def not_token(token, iter):
@@ -114,7 +198,23 @@ def or_token(token, iter):
 
 
 def output_token(token, iter):
-    pass
+    op1 = next(iter)
+
+    if op1.type == Type.REGISTER:
+        mode = AddressMode.REGISTER
+    elif op1.type == Type.LITERAL and isinstance(op1.value, int):
+        mode = AddressMode.LITERAL
+    elif op1.type == Type.DEREF and isinstance(op1.value, int):
+        mode = AddressMode.MEMORY
+    elif op1.type == Type.DEREF:
+        mode = AddressMode.REGISTERDEREF
+    else:
+        print(
+            f"syntax error on line {token.line_num}. the operand, {op1.value}, to output instruction must be a register, literal value, or a dereference."
+        )
+        sys.exit(1)
+
+    return Node(opcode=Opcode.OUTPUT, address_mode=mode, op1=op1.value, op2=None)
 
 
 def pop_token(token, iter):
@@ -134,7 +234,7 @@ def pushbyte_token(token, iter):
 
 
 def return_token(token, iter):
-    pass
+    return Node(opcode=Opcode.RETURN, address_mode=AddressMode.NONE, op1=None, op2=None)
 
 
 def store_token(token, iter):
@@ -157,7 +257,7 @@ def xor_token(token, iter):
     pass
 
 
-def label_token(token, iter):
+def deref_token(token, iter):
     pass
 
 
@@ -169,92 +269,105 @@ def register_token(token, iter):
     pass
 
 
-def variable_token(token, iter):
-    literal_token = next(iter)
-    symbol_table[token.value] = literal_token.value
-
-
 def parse(tokens):
+    nodes = []
     toks = iter(tokens)
     while True:
         token = next(toks, "end")
         if token == "end":
             break
         if token.type == Type.ADD:
-            add_token(token, toks)
+            node = add_token(token, toks)
         if token.type == Type.AND:
-            and_token(token, toks)
+            node = and_token(token, toks)
         if token.type == Type.CALL:
-            call_token(token, toks)
+            node = call_token(token, toks)
         if token.type == Type.COMPARE:
-            compare_token(token, toks)
+            node = compare_token(token, toks)
         if token.type == Type.DIVIDE:
-            divide_token(token, toks)
+            node = divide_token(token, toks)
         if token.type == Type.HALT:
-            halt_token(token, toks)
+            node = halt_token(token, toks)
         if token.type == Type.INPUT:
-            input_token(token, toks)
+            node = input_token(token, toks)
         if token.type == Type.JUMP:
-            jump_token(token, toks)
+            node = jump_token(token, toks)
         if token.type == Type.JUMPEQ:
-            jumpeq_token(token, toks)
+            node = jumpeq_token(token, toks)
         if token.type == Type.JUMPGREATER:
-            jumpgreater_token(token, toks)
+            node = jumpgreater_token(token, toks)
         if token.type == Type.JUMPLESS:
-            jumpless_token(token, toks)
+            node = jumpless_token(token, toks)
         if token.type == Type.JUMPLESSEQ:
-            jumplesseq_token(token, toks)
+            node = jumplesseq_token(token, toks)
         if token.type == Type.JUMPNOTEQ:
-            jumpnoteq_token(token, toks)
+            node = jumpnoteq_token(token, toks)
         if token.type == Type.LOAD:
-            load_token(token, toks)
+            node = load_token(token, toks)
         if token.type == Type.LOADBYTE:
-            loadbyte_token(token, toks)
+            node = loadbyte_token(token, toks)
         if token.type == Type.MODULUS:
-            modulus_token(token, toks)
+            node = modulus_token(token, toks)
         if token.type == Type.MULTIPLY:
-            multiply_token(token, toks)
+            node = multiply_token(token, toks)
         if token.type == Type.NOP:
-            nop_token(token, toks)
+            node = nop_token(token, toks)
         if token.type == Type.NOT:
-            not_token(token, toks)
+            node = not_token(token, toks)
         if token.type == Type.OR:
-            or_token(token, toks)
+            node = or_token(token, toks)
         if token.type == Type.OUTPUT:
-            output_token(token, toks)
+            node = output_token(token, toks)
         if token.type == Type.POP:
-            pop_token(token, toks)
+            node = pop_token(token, toks)
         if token.type == Type.POPBYTE:
-            popbyte_token(token, toks)
+            node = popbyte_token(token, toks)
         if token.type == Type.PUSH:
-            push_token(token, toks)
+            node = push_token(token, toks)
         if token.type == Type.PUSHBYTE:
-            pushbyte_token(token, toks)
+            node = pushbyte_token(token, toks)
         if token.type == Type.RETURN:
-            return_token(token, toks)
+            node = return_token(token, toks)
         if token.type == Type.STORE:
-            store_token(token, toks)
+            node = store_token(token, toks)
         if token.type == Type.STOREBYTE:
-            storebyte_token(token, toks)
+            node = storebyte_token(token, toks)
         if token.type == Type.SUBTRACT:
-            subtract_token(token, toks)
+            node = subtract_token(token, toks)
         if token.type == Type.SYSCALL:
-            syscall_token(token, toks)
+            node = syscall_token(token, toks)
         if token.type == Type.XOR:
-            xor_token(token, toks)
+            node = xor_token(token, toks)
 
+        if token.type == Type.DEREF:
+            node = deref_token(token, toks)
         if token.type == Type.LABEL:
-            label_token(token, toks)
+            # each node will be 8 bytes, plus the 8 byte header
+            symbol_table[token.value] = len(nodes) * 8 + 8
+            continue
         if token.type == Type.LITERAL:
-            literal_token(token, toks)
+            node = literal_token(token, toks)
         if token.type == Type.REGISTER:
-            register_token(token, toks)
+            node = register_token(token, toks)
         if token.type == Type.VARIABLE:
-            variable_token(token, toks)
+            lit = next(toks)
+            symbol_table[token.value] = lit.value
+            continue
 
+        nodes.append(node)
 
-if __name__ == "__main__":
-    with open(sys.argv[1]) as f:
-        source = f.readlines()
-    lexed = lex(source)
-    print(parse(lexed))
+    program_length = len(nodes) * 8 + 8
+    data = []
+
+    # resolve symbols
+    for node in nodes:
+        if node.resolve_symbol and type(0) != type(symbol_table[node.op2]):
+            data.append(symbol_table[node.op2])
+            l = program_length
+            program_length += len(symbol_table[node.op2])
+            node.op2 = l
+        elif node.resolve_symbol:
+            node.op2 = symbol_table[node.op2]
+
+    nodes.extend(data)
+    return nodes

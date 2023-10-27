@@ -111,11 +111,13 @@ opcodes = {
     b"ad": (Opcode.ADD, AddressMode.LITERAL),
     b"aD": (Opcode.ADD, AddressMode.MEMORY),
     b"Ad": (Opcode.ADD, AddressMode.REGISTER),
+    b"AD": (Opcode.ADD, AddressMode.REGISTERDEREF),
     b"an": (Opcode.AND, AddressMode.LITERAL),
     b"An": (Opcode.AND, AddressMode.REGISTER),
     b"cl": (Opcode.CALL, AddressMode.LITERAL),
     b"Cl": (Opcode.CALL, AddressMode.REGISTER),
     b"cp": (Opcode.COMPARE, AddressMode.LITERAL),
+    b"cP": (Opcode.COMPARE, AddressMode.MEMORY),
     b"Cp": (Opcode.COMPARE, AddressMode.REGISTER),
     b"CP": (Opcode.COMPARE, AddressMode.REGISTERDEREF),
     b"dv": (Opcode.DIVIDE, AddressMode.LITERAL),
@@ -161,6 +163,7 @@ opcodes = {
     b"ot": (Opcode.OUTPUT, AddressMode.LITERAL),
     b"oT": (Opcode.OUTPUT, AddressMode.MEMORY),
     b"Ot": (Opcode.OUTPUT, AddressMode.REGISTER),
+    b"OT": (Opcode.OUTPUT, AddressMode.REGISTERDEREF),
     b"po": (Opcode.POP, AddressMode.LITERAL),
     b"Po": (Opcode.POP, AddressMode.REGISTER),
     b"pb": (Opcode.POPBYTE, AddressMode.LITERAL),
@@ -263,3 +266,17 @@ class Token:
 
     def __repr__(self):
         return f"{self.line_num}:{self.type}: {self.value}"
+
+
+class Node:
+    def __init__(
+        self, opcode=None, address_mode=None, op1=None, op2=None, resolve_symbol=False
+    ):
+        self.opcode = opcode
+        self.address_mode = address_mode
+        self.op1 = op1
+        self.op2 = op2
+        self.resolve_symbol = resolve_symbol
+
+    def __repr__(self):
+        return f"{self.opcode} {self.address_mode} {self.op1} {self.op2} {self.resolve_symbol}"

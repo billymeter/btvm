@@ -102,6 +102,17 @@ def lex_word(word, line_num):
     if word.endswith(":"):
         return Token(Type.LABEL, word[:-1], line_num)
 
+    # handle dereferences
+    if word.startswith("[") and word.endswith("]"):
+        try:
+            if lword[:2] == "0x":
+                val = int(word[2:-1], 16)
+            else:
+                val = int(word[1:-1])
+        except:
+            val = word[1:-1]
+        return Token(Type.DEREF, val, line_num)
+
     # handle literals
     try:
         if lword[:2] == "0x":
