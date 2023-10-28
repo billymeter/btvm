@@ -188,6 +188,7 @@ class Instruction:
 
     def execute(self) -> None:
         if Opcode.ADD == self.opcode:
+            # print(self.op2, type(self.op2))
             self.machine.registers[self.op1] += self.op2 & 0xFFFF
 
         if Opcode.AND == self.opcode:
@@ -272,11 +273,11 @@ class Instruction:
             # this instruction is a little weird
             if self.address_mode == AddressMode.LITERAL:
                 # take the least significant byte of the register value
-                char = chr(self.machine.registers[self.op1] & 0xFF)
+                char = chr(self.machine.registers[self.op2] & 0xFF)
 
             if self.address_mode == AddressMode.REGISTER:
                 # dereference value stored in the register
-                char = chr(self.machine.memory[self.machine.registers[self.op1]])
+                char = chr(self.machine.memory[self.machine.registers[self.op2]])
 
             if self.address_mode == AddressMode.MEMORY:
                 # output the value at the address in the operand

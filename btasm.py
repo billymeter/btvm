@@ -14,6 +14,7 @@ def main():
     with open(sys.argv[1]) as f:
         source = f.readlines()
     lexed = lex(source)
+    # print(lexed)
     parsed = parse(lexed)
     # print(parsed)
     print(assemble(parsed))
