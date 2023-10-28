@@ -1,0 +1,27 @@
+.hello: "hello, world"      ;; length is 12
+
+load r0 0                   ;; counter
+load r1 hello               ;; message
+load r2 0                   ;; string 2 flag
+
+loop:
+    output r1               ;; output character
+    add r0 1                ;; counter++
+    add r1 1                ;; increment hello pointer
+    compare r0 0xc          ;; check if counter == 12
+    jumpnoteq loop          ;; loop if counter != 12
+
+
+.hi: "hey"                  ;; length is 3
+
+output 0xa                  ;; output a newline
+compare r2 1                ;; check if second string is done
+jumpeq exit                 ;; quit if so
+
+load r0 9                   ;; set counter to 9
+load r1 hi                  ;; load string two
+load r2 1                   ;; set string flag
+jump loop                   ;; run loop again
+
+exit:
+    halt                    ;; stop the system

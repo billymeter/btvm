@@ -30,7 +30,10 @@ def assemble(nodes):
                 program += "{:04x}".format(node.op2)
             elif node.op2 is None:
                 program += "btbt"
-            elif node.address_mode == AddressMode.REGISTER:
+            elif (
+                node.address_mode == AddressMode.REGISTER
+                or node.address_mode == AddressMode.REGISTERDEREF
+            ):
                 program += node.op2 + "bt"
             else:
                 program += node.op2

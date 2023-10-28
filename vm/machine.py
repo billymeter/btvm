@@ -1,11 +1,12 @@
 from common.common import *
+from time import time
 import sys
 
 
 class Machine:
     def __init__(self, program: bytes):
         # create some memory and load the program into it
-        self.memory = program + bytearray([0] * (0x10000 - len(program)))
+        self.memory = bytearray(program + bytearray([0] * (0x10000 - len(program))))
 
         # set up registers
         self.registers = {
@@ -33,12 +34,12 @@ class Machine:
     def halt(self) -> None:
         self.running = False
 
-    def pop(self) -> bytes:
+    def pop(self):
         msb = self.popbyte()
         lsb = self.popbyte()
-        return (msb >> 8) + lsb
+        return (msb << 8) + lsb
 
-    def popbyte(self) -> bytes:
+    def popbyte(self):
         value = self.memory[self.registers[Register.RSP]]
         self.registers[Register.RSP] += 1
 
@@ -64,7 +65,7 @@ class Machine:
             raise RuntimeError(
                 "stack pointer moved out of bounds! must be between 0 and 0xffff!"
             )
-        self.memory[self.registers[Register.RSP]] = value & 0xFF
+        self.memory[self.registers[Register.RSP]] = int(value) & 0xFF
 
     def run(self) -> None:
         self.running = True
@@ -149,29 +150,32 @@ class Machine:
 class Instruction:
     def __init__(self, byt: bytes, machine: Machine):
         self.machine = machine
-        opcode = byt[:2]
+        opcode = bytes(byt[:2])
         try:
             self.opcode, self.address_mode = opcodes[opcode]
         except KeyError as invalid:
-            print(
-                f"opcode {invalid} at address {hex(self.machine.registers[Register.RIP])} is not a valid opcode!"
-            )
-            print("reg dump:")
-            for k, v in self.machine.registers.items():
-                print(f"  {k}: {hex(v)}")
-            self.machine.running = False
+            with open(f"crash", "w") as f:
+                f.write(
+                    f"opcode {invalid} at address {hex(self.machine.registers[Register.RIP])} is not a valid opcode!\n\n"
+                )
+                f.write("reg dump:\n")
+                for k, v in self.machine.registers.items():
+                    f.write(f"  {k}: {hex(v)}\n")
+                f.write("\n")
+            print("segmentation fault. crash file created.")
+            sys.exit(1)
 
         # set the destination register operand
-        self.op1 = register_codes[byt[2:4]]
+        self.op1 = register_codes[bytes(byt[2:4])]
 
         # figure out what the second operand should be based
         # on the address mode
         if AddressMode.REGISTER == self.address_mode:
             # decode the register values for the operands
-            self.op2 = register_codes[byt[4:6]]
+            self.op2 = register_codes[bytes(byt[4:6])]
 
         if AddressMode.REGISTERDEREF == self.address_mode:
-            addr = register_codes[byt[4:8]]
+            addr = self.machine.registers[register_codes[bytes(byt[4:6])]]
             self.op2 = self.machine.memory[addr]
 
         if AddressMode.LITERAL == self.address_mode:
@@ -273,7 +277,7 @@ class Instruction:
             # this instruction is a little weird
             if self.address_mode == AddressMode.LITERAL:
                 # take the least significant byte of the register value
-                char = chr(self.machine.registers[self.op2] & 0xFF)
+                char = chr(self.op2 & 0xFF)
 
             if self.address_mode == AddressMode.REGISTER:
                 # dereference value stored in the register
@@ -286,16 +290,16 @@ class Instruction:
             sys.stdout.write(char)
 
         if Opcode.POP == self.opcode:
-            self.machine.registers[self.op1] = self.machine.pop()
+            self.machine.registers[self.op2] = self.machine.pop()
 
         if Opcode.POPBYTE == self.opcode:
-            self.machine.registers[self.op1] = self.machine.popbyte()
+            self.machine.registers[self.op2] = self.machine.popbyte()
 
         if Opcode.PUSH == self.opcode:
-            self.machine.push(self.op1)
+            self.machine.push(self.op2)
 
         if Opcode.PUSHBYTE == self.opcode:
-            self.machine.pushbyte(self.op1)
+            self.machine.pushbyte(self.op2)
 
         if Opcode.RETURN == self.opcode:
             ret = self.machine.pop()

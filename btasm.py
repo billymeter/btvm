@@ -17,7 +17,7 @@ def main():
     # print(lexed)
     parsed = parse(lexed)
     # print(parsed)
-    print(assemble(parsed))
+    print(assemble(parsed), end="")
 
 
 if __name__ == "__main__":
