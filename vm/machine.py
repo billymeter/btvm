@@ -4,7 +4,7 @@ import sys
 
 
 class Machine:
-    def __init__(self, program: bytes):
+    def __init__(self, program=bytearray([0] * 0x10000)):
         # create some memory and load the program into it
         self.memory = bytearray(program + bytearray([0] * (0x10000 - len(program))))
 
@@ -33,6 +33,9 @@ class Machine:
 
     def halt(self) -> None:
         self.running = False
+
+    def load_program(self, program):
+        self.__init__(program)
 
     def pop(self):
         msb = self.popbyte()
@@ -172,7 +175,7 @@ class Instruction:
         # on the address mode
         if AddressMode.REGISTER == self.address_mode:
             # decode the register values for the operands
-            self.op2 = register_codes[bytes(byt[4:6])]
+            self.op2 = self.machine.registers[register_codes[bytes(byt[4:6])]]
 
         if AddressMode.REGISTERDEREF == self.address_mode:
             addr = self.machine.registers[register_codes[bytes(byt[4:6])]]
