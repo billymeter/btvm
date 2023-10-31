@@ -25,7 +25,7 @@ class Machine:
             Register.RERROR: 0,
         }
 
-        self.open_file_descriptors: {0: sys.stdout, 1: sys.stdin, 2: sys.stderr}
+        self.open_file_descriptors = {0: sys.stdout, 1: sys.stdin, 2: sys.stderr}
         self.files_open = 2
 
         # machine is running flag
@@ -108,9 +108,20 @@ class Machine:
         if SystemCall.OPEN == syscall:
             # get the path string from memory
             end_point = self.memory.find(b"\\0", argument_1)
-            path = self.memory[argument_1:end_point]
+            if end_point == -1:
+                self.registers[Register.RERROR] = VMError.FILE_NOT_FOUND
+                self.registers[Register.RRES] = -1
+                return
+            path = bytes(self.memory[argument_1:end_point])
             try:
-                fd = open(path, argument_2)
+                if isinstance(argument_2, int):
+                    if argument_2 == 1:
+                        mode = "r"
+                    elif argument_2 == 2:
+                        mode = "w"
+                    else:
+                        mode = "r"
+                fd = open(path, mode)
                 self.files_open += 1
                 self.open_file_descriptors[self.files_open] = fd
                 self.registers[Register.RERROR] = 0
@@ -124,6 +135,10 @@ class Machine:
             return
 
         if SystemCall.READ == syscall:
+            filedes = self.open_file_descriptors[argument_1]
+            buf = bytes(filedes.read(argument_3), "utf-8")
+            self.memory[argument_2 : len(buf)] = buf
+            self.registers[Register.RRES] = len(buf)
             return
 
         if SystemCall.WRITE == syscall:
@@ -165,6 +180,7 @@ class Instruction:
                 for k, v in self.machine.registers.items():
                     f.write(f"  {k}: {hex(v)}\n")
                 f.write("\n")
+                f.write(f"open file descriptors: {self.machine.open_file_descriptors}")
             print("segmentation fault. crash file created.")
             sys.exit(1)
 

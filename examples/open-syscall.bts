@@ -1,0 +1,25 @@
+;; open syscall example
+
+.hello: "hello world"
+.file: "/etc/passwd\0"
+
+load r0 0xb
+load r1 file
+load r2 1
+syscall
+
+load r0 0xc         ;; read
+load r1 rres        ;; filedes
+load r2 0x5000      ;; buf
+load r3 100         ;; num to read
+syscall
+
+load r0 0
+load r1 0x5000
+loop:
+    output r1
+    add r0 1
+    add r1 1
+    compare r1 100
+    jumpnoteq loop
+halt

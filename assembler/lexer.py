@@ -85,14 +85,18 @@ def lex_word(word, line_num):
         "r5",
         "r6",
         "r7",
-        "rip",
-        "rsp",
-        "rbp",
-        "rres",
-        "rerror",
-        "rstatus",
     }:
         return Token(Type.REGISTER, lword, line_num)
+    elif lword == "rip":
+        return Token(Type.REGISTER, "ip", line_num)
+    elif lword == "rsp":
+        return Token(Type.REGISTER, "sp", line_num)
+    elif lword == "rbp":
+        return Token(Type.REGISTER, "bp", line_num)
+    elif lword == "rres":
+        return Token(Type.REGISTER, "rs", line_num)
+    elif lword == "rerror":
+        return Token(Type.REGISTER, "er", line_num)
 
     # handle variables
     if word.startswith(".") and word.endswith(":"):

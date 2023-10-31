@@ -280,7 +280,6 @@ register_codes = {
     b"sp": Register.RSP,
     b"bp": Register.RBP,
     b"rs": Register.RRES,
-    b"st": Register.RSTATUS,
     b"er": Register.RERROR,
 }
 
