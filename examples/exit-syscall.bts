@@ -1,0 +1,12 @@
+;; exit syscall example.
+;; kills the vm with a provided error code.
+
+load r0 0xa         ;; exit syscall number
+load r1 57          ;; exit error code 57
+syscall             ;; execute the system call
+
+
+;; check the error code in bash, after executing
+;; this program with
+;;
+;; `echo $?`
