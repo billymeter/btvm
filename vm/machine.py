@@ -142,7 +142,7 @@ class Machine:
         if SystemCall.RANDOM == syscall:
             try:
                 with open("/dev/urandom", "rb") as f:
-                    self.registers[Register.RRES] = int(f.read(4).hex(), 16)
+                    self.registers[Register.RRES] = int(f.read(2).hex(), 16)
                     self.registers[Register.RERROR] = 0
             except:
                 self.registers[Register.RRES] = -1
@@ -318,11 +318,11 @@ class Instruction:
             self.machine.registers[self.op1] -= self.op2 & 0xFFFF
 
         if Opcode.SYSCALL == self.opcode:
-            syscall = syscall_table[self.registers[Register.R0]]
-            argument_1 = self.registers[Register.R1]
-            argument_2 = self.registers[Register.R2]
-            argument_3 = self.registers[Register.R3]
-            argument_4 = self.registers[Register.R4]
+            syscall = syscall_table[self.machine.registers[Register.R0]]
+            argument_1 = self.machine.registers[Register.R1]
+            argument_2 = self.machine.registers[Register.R2]
+            argument_3 = self.machine.registers[Register.R3]
+            argument_4 = self.machine.registers[Register.R4]
             self.machine.systemcall(
                 syscall=syscall,
                 argument_1=argument_1,

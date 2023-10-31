@@ -286,10 +286,10 @@ register_codes = {
 
 
 syscall_table = {
-    b"a": SystemCall.EXIT,
-    b"b": SystemCall.OPEN,
-    b"c": SystemCall.READ,
-    b"d": SystemCall.WRITE,
-    b"e": SystemCall.CLOSE,
-    b"f": SystemCall.RANDOM,
+    0xA: SystemCall.EXIT,
+    0xB: SystemCall.OPEN,
+    0xC: SystemCall.READ,
+    0xD: SystemCall.WRITE,
+    0xE: SystemCall.CLOSE,
+    0xF: SystemCall.RANDOM,
 }
