@@ -137,11 +137,21 @@ class Machine:
         if SystemCall.READ == syscall:
             filedes = self.open_file_descriptors[argument_1]
             buf = bytes(filedes.read(argument_3), "utf-8")
-            self.memory[argument_2 : len(buf)] = buf
+
+            if len(buf) == 0:
+                self.registers[Register.RERROR] = VMError.END_OF_FILE
+                self.registers[Register.RRES] = -1
+                return
+
+            self.memory[argument_2 : argument_2 + len(buf)] = buf
             self.registers[Register.RRES] = len(buf)
             return
 
         if SystemCall.WRITE == syscall:
+            filedes = self.open_file_descriptors[argument_1]
+            buf = self.memory[argument_2 : argument_2 + argument_3].decode("utf-8")
+            bytes_written = filedes.write(buf)
+            self.registers[Register.RRES] = bytes_written
             return
 
         if SystemCall.CLOSE == syscall:
@@ -230,9 +240,6 @@ class Instruction:
             result = self.machine.registers[self.op1] - self.op2
             self.machine.registers[Register.RRES] = result
 
-            # if result == 0:
-            #     self.machine.registers[Register.RSTATUS] |= StatusFlag.ZERO
-
         if Opcode.DIVIDE == self.opcode:
             # integer division only
             self.machine.registers[self.op1] //= self.op2 & 0xFFFF
@@ -302,11 +309,16 @@ class Instruction:
                 # dereference value stored in the register
                 char = chr(self.machine.memory[self.machine.registers[self.op2]])
 
+            if self.address_mode == AddressMode.REGISTERDEREF:
+                # dereference value stored in the register
+                char = chr(self.op2)
+
             if self.address_mode == AddressMode.MEMORY:
                 # output the value at the address in the operand
                 char = chr(self.machine.memory[self.machine.registers[self.op2]])
 
             sys.stdout.write(char)
+            sys.stdout.flush()
 
         if Opcode.POP == self.opcode:
             self.machine.registers[self.op2] = self.machine.pop()

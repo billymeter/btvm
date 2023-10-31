@@ -126,20 +126,36 @@ def compare_token(token, iter):
         )
         return None
     if op2.type == Type.REGISTER:
+        resolve_symbol = False
         mode = AddressMode.REGISTER
     elif op2.type == Type.LITERAL and isinstance(op2.value, int):
+        resolve_symbol = False
+        mode = AddressMode.LITERAL
+    elif op2.type == Type.LITERAL:
+        resolve_symbol = True
         mode = AddressMode.LITERAL
     elif op2.type == Type.DEREF and isinstance(op2.value, int):
+        resolve_symbol = False
         mode = AddressMode.MEMORY
     elif op2.type == Type.DEREF:
+        resolve_symbol = False
         mode = AddressMode.REGISTERDEREF
+    elif op2.type == Type.VARIABLE:
+        resolve_symbol = True
     else:
+        print(f"op2 is {op2}")
         errors.append(
             f"syntax error on line {token.line_num}. second operand, {op2.value}, to compare instruction must be a register, literal value, or a dereference."
         )
         return None
 
-    return Node(opcode=Opcode.COMPARE, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.COMPARE,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        resolve_symbol=resolve_symbol,
+    )
 
 
 def divide_token(token, iter):
@@ -1040,6 +1056,7 @@ def parse(tokens):
             node = register_token(token, toks)
         elif token.type == Type.VARIABLE:
             lit = next(toks)
+            # if lit.value[:2] == "0x":
             symbol_table[token.value] = lit.value
             continue
         else:
@@ -1066,4 +1083,5 @@ def parse(tokens):
             node.op2 = symbol_table[node.op2]
 
     nodes.extend(data)
+    # print(symbol_table)
     return nodes

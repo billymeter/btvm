@@ -1,4 +1,4 @@
-from enum import auto, Enum
+from enum import auto, Enum, IntEnum
 
 
 class AddressMode(Enum):
@@ -150,14 +150,14 @@ class Type(Enum):
     VARIABLE = auto()
 
 
-class VMError(Enum):
+class VMError(IntEnum):
     # error codes for the system.
-    NO_ERROR = auto()
-    FILE_NOT_FOUND = auto()
-    NO_PERMISSIONS = auto()
-    END_OF_FILE = auto()
-    BAD_FILE_DESCRIPTOR = auto()
-    UNKNOWN = auto()
+    NO_ERROR = 0
+    FILE_NOT_FOUND = 1
+    NO_PERMISSIONS = 2
+    END_OF_FILE = 3
+    BAD_FILE_DESCRIPTOR = 4
+    UNKNOWN = 5
 
 
 def error_description(error_num):

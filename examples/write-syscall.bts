@@ -1,0 +1,9 @@
+.string: "hello, world"
+.stdout: 0
+
+load r0 0xd     ;; write
+load r1 stdout  ;; stdout
+load r2 string  ;; buffer
+load r3 12      ;; length
+syscall         ;; write(stdout, "hello, world", 12)
+halt            ;; stop the system
