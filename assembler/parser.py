@@ -8,6 +8,7 @@ import sys
 
 symbol_table = {}
 errors = []
+warnings = []
 
 
 def add_token(token, iter):
@@ -1047,6 +1048,11 @@ def parse(tokens):
         elif token.type == Type.DEREF:
             node = deref_token(token, toks)
         elif token.type == Type.LABEL:
+            if lit.value in symbol_table:
+                warnings.append(
+                    f"warning: overwriting value of `{token.value}` on line {token.line_num}. Is this what you wanted to do?"
+                )
+
             # each node will be 8 bytes, plus the 8 byte header
             symbol_table[token.value] = len(nodes) * 8 + 8
             continue
@@ -1056,7 +1062,10 @@ def parse(tokens):
             node = register_token(token, toks)
         elif token.type == Type.VARIABLE:
             lit = next(toks)
-            # if lit.value[:2] == "0x":
+            if lit.value in symbol_table:
+                warnings.append(
+                    f"warning: overwriting value of `{token.value}` on line {token.line_num}. Is this what you wanted to do?"
+                )
             symbol_table[token.value] = lit.value
             continue
         else:
@@ -1065,22 +1074,25 @@ def parse(tokens):
 
         nodes.append(node)
 
-    if errors:
-        for error in errors:
-            print(error)
-        sys.exit(1)
     program_length = len(nodes) * 8 + 8
     data = []
 
     # resolve symbols
     for node in nodes:
-        if node.resolve_symbol and type(0) != type(symbol_table[node.op2]):
-            data.append(symbol_table[node.op2])
-            l = program_length
-            program_length += len(symbol_table[node.op2])
-            node.op2 = l
-        elif node.resolve_symbol:
-            node.op2 = symbol_table[node.op2]
+        try:
+            if node.resolve_symbol and type(0) != type(symbol_table[node.op2]):
+                data.append(symbol_table[node.op2])
+                l = program_length
+                program_length += len(symbol_table[node.op2])
+                node.op2 = l
+            elif node.resolve_symbol:
+                node.op2 = symbol_table[node.op2]
+        except KeyError:
+            errors.append("")
+    if errors:
+        for error in errors:
+            print(error)
+        sys.exit(1)
 
     nodes.extend(data)
     # print(symbol_table)

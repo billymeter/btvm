@@ -9,7 +9,9 @@
     .read: 0xc
     .write: 0xd
     .close: 0xe
+    .buffer: 0x5000
 
+;;;; open /etc/passwd
 load r0 open                ;; open
 load r1 file                ;; path
 load r2 read_only_mode      ;; mode
@@ -18,24 +20,28 @@ syscall                     ;; open("/etc/passwd", "r")
 load r7 rres                ;; need to save filedes
 
 loop:
+    ;;;; read 100 bytes from /etc/passwd
     load r0 read            ;; read
     load r1 r7              ;; filedes
-    load r2 0x5000          ;; buf
+    load r2 buffer          ;; buf
     load r3 100             ;; num to read
     syscall
 
     load r5 rres            ;; num bytes read
+    ;;;; check if we reached the end of file
     compare rerror eof      ;; 3 = end of file
     jumpeq closefile        ;; exit if end of file
 
+    ;;;; write read bytes to stdout
     load r0 write           ;; write
     load r1 stdout          ;; stdout
-    load r2 0x5000          ;; buffer
+    load r2 buffer          ;; buffer
     load r3 r5              ;; num to write
     syscall                 ;; write(stdout, buffer, nbytes)
     jump loop               ;; do another read of 100 bytes
 
 closefile:
+    ;;;; close the file
     load r0 close           ;; close
     load r1 r7              ;; file descriptor
     syscall                 ;; close(fd)
