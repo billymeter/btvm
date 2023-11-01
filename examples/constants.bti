@@ -1,0 +1,28 @@
+;; constants file for btvm
+;; to be used as an inclusion
+
+;; error codes
+.error-none:                0
+.error-file-not-found:      1
+.error-no-permissions:      2
+.error-end-of-file:         3
+.error-bad-file-descriptor: 4
+.error-unknown:             5
+
+;; file access modes
+.file-read:                 1
+.file-write:                2
+.file-append:               4
+
+;; file descriptors
+.filedes-stdout:            0
+.filedes-stdin:             1
+.filedes-stderr:            2
+
+;; systemcalls
+.syscall-exit:              0xa
+.syscall-open:              0xb
+.syscall-read:              0xc
+.syscall-write:             0xd
+.syscall-close:             0xe
+.syscall-random:            0xf

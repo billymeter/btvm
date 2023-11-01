@@ -18,12 +18,19 @@ class FileMode(Enum):
 
 class Node:
     def __init__(
-        self, opcode=None, address_mode=None, op1=None, op2=None, resolve_symbol=False
+        self,
+        opcode=None,
+        address_mode=None,
+        op1=None,
+        op2=None,
+        line_num=0,
+        resolve_symbol=False,
     ):
         self.opcode = opcode
         self.address_mode = address_mode
         self.op1 = op1
         self.op2 = op2
+        self.line_num = line_num
         self.resolve_symbol = resolve_symbol
 
     def __repr__(self):

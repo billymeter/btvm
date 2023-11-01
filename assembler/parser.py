@@ -41,7 +41,13 @@ def add_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.ADD, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.ADD,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def and_token(token, iter):
@@ -74,7 +80,13 @@ def and_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.AND, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.AND,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def call_token(token, iter):
@@ -107,7 +119,13 @@ def call_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.CALL, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.CALL,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def compare_token(token, iter):
@@ -155,6 +173,7 @@ def compare_token(token, iter):
         address_mode=mode,
         op1=op1.value,
         op2=op2.value,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -189,11 +208,23 @@ def divide_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.DIVIDE, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.DIVIDE,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def halt_token(token, iter):
-    return Node(opcode=Opcode.HALT, address_mode=AddressMode.NONE, op1=None, op2=None)
+    return Node(
+        opcode=Opcode.HALT,
+        address_mode=AddressMode.NONE,
+        op1=None,
+        op2=None,
+        line_num=token.line_num,
+    )
 
 
 def input_token(token, iter):
@@ -219,7 +250,13 @@ def input_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.INPUT, address_mode=mode, op1=None, op2=op.value)
+    return Node(
+        opcode=Opcode.INPUT,
+        address_mode=mode,
+        op1=None,
+        op2=op.value,
+        line_num=token.line_num,
+    )
 
 
 def jump_token(token, iter):
@@ -251,6 +288,7 @@ def jump_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -284,6 +322,7 @@ def jumpeq_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -317,6 +356,7 @@ def jumpgreater_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -350,6 +390,7 @@ def jumpgreatereq_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -383,6 +424,7 @@ def jumpless_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -416,6 +458,7 @@ def jumplesseq_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -449,6 +492,7 @@ def jumpnoteq_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -487,6 +531,7 @@ def load_token(token, iter):
         address_mode=mode,
         op1=op1.value,
         op2=op2.value,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -525,6 +570,7 @@ def loadbyte_token(token, iter):
         address_mode=mode,
         op1=op1.value,
         op2=op2.value,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -559,7 +605,13 @@ def modulus_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.MODULUS, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.MODULUS,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def multiply_token(token, iter):
@@ -592,11 +644,23 @@ def multiply_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.MULTIPLY, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.MULTIPLY,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def nop_token(token, iter):
-    return Node(opcode=Opcode.NOP, address_mode=AddressMode.NONE, op1=None, op2=None)
+    return Node(
+        opcode=Opcode.NOP,
+        address_mode=AddressMode.NONE,
+        op1=None,
+        op2=None,
+        line_num=token.line_num,
+    )
 
 
 def not_token(token, iter):
@@ -622,7 +686,13 @@ def not_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.NOT, address_mode=mode, op1=None, op2=op.value)
+    return Node(
+        opcode=Opcode.NOT,
+        address_mode=mode,
+        op1=None,
+        op2=op.value,
+        line_num=token.line_num,
+    )
 
 
 def or_token(token, iter):
@@ -655,7 +725,13 @@ def or_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.OR, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.OR,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def output_token(token, iter):
@@ -681,7 +757,13 @@ def output_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.OUTPUT, address_mode=mode, op1=None, op2=op.value)
+    return Node(
+        opcode=Opcode.OUTPUT,
+        address_mode=mode,
+        op1=None,
+        op2=op.value,
+        line_num=token.line_num,
+    )
 
 
 def pop_token(token, iter):
@@ -713,6 +795,7 @@ def pop_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -746,6 +829,7 @@ def popbyte_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -779,6 +863,7 @@ def push_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -812,6 +897,7 @@ def pushbyte_token(token, iter):
         address_mode=mode,
         op1=None,
         op2=val,
+        line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
 
@@ -850,7 +936,13 @@ def store_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.STORE, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.STORE,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def storebyte_token(token, iter):
@@ -884,7 +976,11 @@ def storebyte_token(token, iter):
         return None
 
     return Node(
-        opcode=Opcode.STOREBYTE, address_mode=mode, op1=op1.value, op2=op2.value
+        opcode=Opcode.STOREBYTE,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
     )
 
 
@@ -918,12 +1014,22 @@ def subtract_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.SUBTRACT, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.SUBTRACT,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def syscall_token(token, iter):
     return Node(
-        opcode=Opcode.SYSCALL, address_mode=AddressMode.NONE, op1=None, op2=None
+        opcode=Opcode.SYSCALL,
+        address_mode=AddressMode.NONE,
+        op1=None,
+        op2=None,
+        line_num=token.line_num,
     )
 
 
@@ -957,7 +1063,13 @@ def xor_token(token, iter):
         )
         return None
 
-    return Node(opcode=Opcode.XOR, address_mode=mode, op1=op1.value, op2=op2.value)
+    return Node(
+        opcode=Opcode.XOR,
+        address_mode=mode,
+        op1=op1.value,
+        op2=op2.value,
+        line_num=token.line_num,
+    )
 
 
 def deref_token(token, iter):
@@ -1088,7 +1200,10 @@ def parse(tokens):
             elif node.resolve_symbol:
                 node.op2 = symbol_table[node.op2]
         except KeyError:
-            errors.append("")
+            errors.append(
+                f'{node.opcode} instruction on line {node.line_num} using an undefined variable "{node.op2}"'
+            )
+            continue
     if errors:
         for error in errors:
             print(error)

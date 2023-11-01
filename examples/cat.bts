@@ -14,7 +14,7 @@
 ;;;; open /etc/passwd
 load r0 open                ;; open
 load r1 file                ;; path
-load r2 read_only_mode      ;; mode
+load r2 read_mode           ;; mode
 syscall                     ;; open("/etc/passwd", "r")
 
 load r7 rres                ;; need to save filedes
