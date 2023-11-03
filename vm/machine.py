@@ -23,6 +23,7 @@ class Machine:
             Register.RBP: 0xFFFF,
             Register.RRES: 0,
             Register.RERROR: 0,
+            Register.RCOMPARE: 0,
         }
 
         self.open_file_descriptors = {0: sys.stdout, 1: sys.stdin, 2: sys.stderr}
