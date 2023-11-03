@@ -238,7 +238,7 @@ class Instruction:
 
         if Opcode.COMPARE == self.opcode:
             result = self.machine.registers[self.op1] - self.op2
-            self.machine.registers[Register.RRES] = result
+            self.machine.registers[Register.RCOMPARE] = result
 
         if Opcode.DIVIDE == self.opcode:
             # integer division only
@@ -254,27 +254,27 @@ class Instruction:
             self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPEQ == self.opcode:
-            if self.machine.registers[Register.RRES] == 0:
+            if self.machine.registers[Register.RCOMPARE] == 0:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPGREATER == self.opcode:
-            if self.machine.registers[Register.RRES] > 0:
+            if self.machine.registers[Register.RCOMPARE] > 0:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPGREATEREQ == self.opcode:
-            if self.machine.registers[Register.RRES] >= 0:
+            if self.machine.registers[Register.RCOMPARE] >= 0:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPLESS == self.opcode:
-            if self.machine.registers[Register.RRES] < 0:
+            if self.machine.registers[Register.RCOMPARE] < 0:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPLESSEQ == self.opcode:
-            if self.machine.registers[Register.RRES] <= 0:
+            if self.machine.registers[Register.RCOMPARE] <= 0:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.JUMPNOTEQ == self.opcode:
-            if self.machine.registers[Register.RRES] != 0:
+            if self.machine.registers[Register.RCOMPARE] != 0:
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.LOAD == self.opcode:

@@ -92,6 +92,7 @@ class Register(Enum):
     RRES = auto()
     RSTATUS = auto()
     RERROR = auto()
+    RCOMPARE = auto()
 
 
 class SystemCall(Enum):
@@ -288,6 +289,7 @@ register_codes = {
     b"bp": Register.RBP,
     b"rs": Register.RRES,
     b"er": Register.RERROR,
+    b"rc": Register.RCOMPARE,
 }
 
 
