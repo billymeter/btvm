@@ -109,8 +109,8 @@ def lex_word(word, line_num):
     # handle dereferences
     if word.startswith("[") and word.endswith("]"):
         try:
-            if lword[:2] == "0x":
-                val = int(word[2:-1], 16)
+            if lword[1:3] == "0x":
+                val = int(word[1:-1], 16)
             else:
                 val = int(word[1:-1])
         except:

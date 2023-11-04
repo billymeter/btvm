@@ -965,13 +965,13 @@ def storebyte_token(token, iter):
         mode = AddressMode.REGISTER
     elif op2.type == Type.LITERAL and isinstance(op2.value, int):
         mode = AddressMode.LITERAL
-    elif op2.type == Type.DEREF and isinstance(op2.value, int):
+    elif op1.type == Type.DEREF and isinstance(op2.value, int):
         mode = AddressMode.MEMORY
-    elif op2.type == Type.DEREF:
-        mode = AddressMode.REGISTERDEREF
+    # elif op1.type == Type.DEREF:
+    #     mode = AddressMode.REGISTERDEREF
     else:
         errors.append(
-            f"syntax error on line {token.line_num}. second operand, {op2.value}, to storebyte instruction must be a register, literal value, or a dereference."
+            f"syntax error on line {token.line_num}. second operand, {op1.value}, to storebyte instruction must be a register, literal value, or a dereference."
         )
         return None
 
@@ -1203,6 +1203,8 @@ def parse(tokens):
             errors.append(
                 f'{node.opcode} instruction on line {node.line_num} using an undefined variable "{node.op2}"'
             )
+            continue
+        except:
             continue
     if errors:
         for error in errors:

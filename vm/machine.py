@@ -196,7 +196,12 @@ class Instruction:
             sys.exit(1)
 
         # set the destination register operand
-        self.op1 = register_codes[bytes(byt[2:4])]
+        try:
+            self.op1 = register_codes[bytes(byt[2:4])]
+        except KeyError:
+            print(f"bad register {bytes(byt[2:4])}")
+            self.machine.status()
+            sys.exit(1)
 
         # figure out what the second operand should be based
         # on the address mode
@@ -301,25 +306,7 @@ class Instruction:
             self.machine.registers[self.op1] |= self.op2
 
         if Opcode.OUTPUT == self.opcode:
-            # this instruction is a little weird
-            if self.address_mode == AddressMode.LITERAL:
-                # take the least significant byte of the register value
-                char = chr(self.op2 & 0xFF)
-
-            if self.address_mode == AddressMode.REGISTER:
-                # dereference value stored in the register
-                char = chr(self.machine.memory[self.machine.registers[self.op2]])
-
-            if self.address_mode == AddressMode.REGISTERDEREF:
-                # dereference value stored in the register
-                char = chr(self.op2)
-
-            if self.address_mode == AddressMode.MEMORY:
-                # output the value at the address in the operand
-                char = chr(self.machine.memory[self.machine.registers[self.op2]])
-
-            sys.stdout.write(char)
-            sys.stdout.flush()
+            sys.stdout.write(chr(self.op2))
 
         if Opcode.POP == self.opcode:
             self.machine.registers[self.op2] = self.machine.pop()
@@ -338,10 +325,15 @@ class Instruction:
             self.machine.registers[Register.RIP] = ret
 
         if Opcode.STORE == self.opcode:
-            self.machine.memory[self.op1] = self.op2
+            addr = self.machine.registers[self.op1]
+            lsb = self.op2 & 0xFF
+            msb = (self.op2 >> 8) & 0xFF
+            self.machine.memory[addr] = msb
+            self.machine.memory[addr + 1] = lsb
 
         if Opcode.STOREBYTE == self.opcode:
-            self.machine.memory[self.op1] = self.op2 & 0xFF
+            addr = self.machine.registers[self.op1]
+            self.machine.memory[addr] = self.op2 & 0xFF
 
         if Opcode.SUBTRACT == self.opcode:
             self.machine.registers[self.op1] -= self.op2 & 0xFFFF
