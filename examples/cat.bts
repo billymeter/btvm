@@ -1,48 +1,43 @@
 ;; `cat /etc/passwd` syscall example
 
+#include "constants.bti" ;; common constants
+
 ;; variables
     .file: "/etc/passwd\0"
-    .eof: 3
-    .stdout: 0
-    .read_mode: 1
-    .open: 0xb
-    .read: 0xc
-    .write: 0xd
-    .close: 0xe
     .buffer: 0x5000
 
 ;;;; open /etc/passwd
-load r0 open                ;; open
-load r1 file                ;; path
-load r2 read_mode           ;; mode
-syscall                     ;; open("/etc/passwd", "r")
+load r0 syscall-open                        ;; open
+load r1 file                                ;; path
+load r2 file-read                           ;; mode
+syscall                                     ;; open("/etc/passwd", "r")
 
-load r7 rres                ;; need to save filedes
+load r7 rres                                ;; need to save filedes
 
 loop:
     ;;;; read 100 bytes from /etc/passwd
-    load r0 read            ;; read
-    load r1 r7              ;; filedes
-    load r2 buffer          ;; buf
-    load r3 100             ;; num to read
+    load r0 syscall-read                    ;; read
+    load r1 r7                              ;; filedes
+    load r2 buffer                          ;; buf
+    load r3 100                             ;; num to read
     syscall
 
-    load r5 rres            ;; num bytes read
+    load r5 rres                            ;; num bytes read
     ;;;; check if we reached the end of file
-    compare rerror eof      ;; 3 = end of file
-    jumpeq closefile        ;; exit if end of file
+    compare rerror error-end-of-file        ;; 3 = end of file
+    jumpeq closefile                        ;; exit if end of file
 
     ;;;; write read bytes to stdout
-    load r0 write           ;; write
-    load r1 stdout          ;; stdout
-    load r2 buffer          ;; buffer
-    load r3 r5              ;; num to write
-    syscall                 ;; write(stdout, buffer, nbytes)
-    jump loop               ;; do another read of 100 bytes
+    load r0 syscall-write                   ;; write
+    load r1 filedes-stdout                  ;; stdout
+    load r2 buffer                          ;; buffer
+    load r3 r5                              ;; num to write
+    syscall                                 ;; write(stdout, buffer, nbytes)
+    jump loop                               ;; do another read of 100 bytes
 
 closefile:
     ;;;; close the file
-    load r0 close           ;; close
-    load r1 r7              ;; file descriptor
-    syscall                 ;; close(fd)
-    halt                    ;; halt the system
+    load r0 syscall-close                   ;; close
+    load r1 r7                              ;; file descriptor
+    syscall                                 ;; close(fd)
+    halt                                    ;; halt the system
