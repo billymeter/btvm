@@ -23,7 +23,9 @@ def flatten(input_list):
 
 
 def resolve_imports(source, path="./"):
-    resolved = source
+    # naive import replacement. swaps out `#include` statement with the contents
+    # of the file its including. may require use of a jump statement prior to
+    # any include statements to not break your source code.
     replacements = []
     for i, line in enumerate(source):
         l = shlex.split(line)
@@ -34,10 +36,10 @@ def resolve_imports(source, path="./"):
             replacements.append((i, lines))
 
     for i, l in replacements:
-        del resolved[i]
-        resolved.insert(i, l)
+        del source[i]
+        source.insert(i, l)
 
-    return flatten(resolved)
+    return flatten(source)
 
 
 def main():
