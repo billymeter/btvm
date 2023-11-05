@@ -114,7 +114,30 @@ def lex_word(word, line_num):
             else:
                 val = int(word[1:-1])
         except:
-            val = word[1:-1]
+            lword = lword[1:-1]
+            if lword in {
+                "r0",
+                "r1",
+                "r2",
+                "r3",
+                "r4",
+                "r5",
+                "r6",
+                "r7",
+            }:
+                val = lword
+            elif lword == "rip":
+                val = "ip"
+            elif lword == "rsp":
+                val = "sp"
+            elif lword == "rbp":
+                val = "bp"
+            elif lword == "rres":
+                val = "rs"
+            elif lword == "rerror":
+                val = "er"
+            else:
+                val = word[1:-1]
         return Token(Type.DEREF, val, line_num)
 
     # handle literals
@@ -127,6 +150,30 @@ def lex_word(word, line_num):
         val = word
 
     return Token(Type.LITERAL, val, line_num)
+
+
+def resolve_register(lword, line_num):
+    if lword in {
+        "r0",
+        "r1",
+        "r2",
+        "r3",
+        "r4",
+        "r5",
+        "r6",
+        "r7",
+    }:
+        return Token(Type.REGISTER, lword, line_num)
+    elif lword == "rip":
+        return Token(Type.REGISTER, "ip", line_num)
+    elif lword == "rsp":
+        return Token(Type.REGISTER, "sp", line_num)
+    elif lword == "rbp":
+        return Token(Type.REGISTER, "bp", line_num)
+    elif lword == "rres":
+        return Token(Type.REGISTER, "rs", line_num)
+    elif lword == "rerror":
+        return Token(Type.REGISTER, "er", line_num)
 
 
 def lex_line(line, line_num):

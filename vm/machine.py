@@ -45,9 +45,10 @@ class Machine:
 
     def popbyte(self):
         value = self.memory[self.registers[Register.RSP]]
-        self.registers[Register.RSP] += 1
+        if self.registers[Register.RSP] != 0xFFFF:
+            self.registers[Register.RSP] += 1
 
-        if self.registers[Register.RSP] > 0xFFFF or self.registers[Register.RSP] < 0:
+        if self.registers[Register.RSP] > 0x10000 or self.registers[Register.RSP] < 0:
             self.running = False
             raise RuntimeError(
                 "stack pointer moved out of bounds! must be between 0 and 0xffff!"
@@ -62,9 +63,10 @@ class Machine:
         self.pushbyte(msb)
 
     def pushbyte(self, value: bytes) -> None:
-        self.registers[Register.RSP] -= 1
-
-        if self.registers[Register.RSP] > 0xFFFF or self.registers[Register.RSP] < 0:
+        # if we're at the very top of the stack, don't decrement
+        if self.registers[Register.RSP] != 0xFFFF:
+            self.registers[Register.RSP] -= 1
+        if self.registers[Register.RSP] > 0x10000 or self.registers[Register.RSP] < 0:
             self.running = False
             raise RuntimeError(
                 "stack pointer moved out of bounds! must be between 0 and 0xffff!"
@@ -191,7 +193,16 @@ class Instruction:
                 for k, v in self.machine.registers.items():
                     f.write(f"  {k}: {hex(v)}\n")
                 f.write("\n")
-                f.write(f"open file descriptors: {self.machine.open_file_descriptors}")
+                f.write(
+                    f"open file descriptors: {self.machine.open_file_descriptors}\n\n"
+                )
+                f.write("contents of memory:\n")
+                for i in range(0, 0xFFFF, 16):
+                    f.write(
+                        "  {:04x}: {}\n".format(
+                            i, self.machine.memory[i : i + 16].hex(sep=" ")
+                        )
+                    )
             print("segmentation fault. crash file created.")
             sys.exit(1)
 
@@ -207,18 +218,26 @@ class Instruction:
         # on the address mode
         if AddressMode.REGISTER == self.address_mode:
             # decode the register values for the operands
-            self.op2 = self.machine.registers[register_codes[bytes(byt[4:6])]]
+            reg = register_codes[bytes(byt[4:6])]
+            if reg:
+                self.op2 = self.machine.registers[reg]
+            else:
+                self.op2 = None
 
         if AddressMode.REGISTERDEREF == self.address_mode:
             addr = self.machine.registers[register_codes[bytes(byt[4:6])]]
-            self.op2 = self.machine.memory[addr]
+            lsb = self.machine.memory[addr]
+            msb = self.machine.memory[addr - 1]
+            self.op2 = (msb << 8) + lsb
 
         if AddressMode.LITERAL == self.address_mode:
             self.op2 = int(byt[4:8], 16)
 
         if AddressMode.MEMORY == self.address_mode:
             # unpack memory address and dereference
-            self.op2 = self.machine.memory[int(byt[4:8], 16)]
+            lsb = self.machine.memory[int(byt[4:8], 16)]
+            msb = self.machine.memory[int(byt[4:8], 16) - 1]
+            self.op2 = (msb << 8) + lsb
 
         if AddressMode.NONE == self.address_mode:
             # no processing of operands are needed
@@ -227,7 +246,6 @@ class Instruction:
 
     def execute(self) -> None:
         if Opcode.ADD == self.opcode:
-            # print(self.op2, type(self.op2))
             self.machine.registers[self.op1] += self.op2 & 0xFFFF
 
         if Opcode.AND == self.opcode:
@@ -236,10 +254,8 @@ class Instruction:
         if Opcode.CALL == self.opcode:
             self.machine.push(self.machine.registers[Register.RIP])
             if self.op1:
-                # register
                 self.machine.registers[Register.RIP] = self.op1
             else:
-                # literal value
                 self.machine.registers[Register.RIP] = self.op2
 
         if Opcode.COMPARE == self.opcode:
@@ -309,10 +325,10 @@ class Instruction:
             sys.stdout.write(chr(self.op2))
 
         if Opcode.POP == self.opcode:
-            self.machine.registers[self.op2] = self.machine.pop()
+            self.machine.registers[self.op1] = self.machine.pop()
 
         if Opcode.POPBYTE == self.opcode:
-            self.machine.registers[self.op2] = self.machine.popbyte()
+            self.machine.registers[self.op1] = self.machine.popbyte()
 
         if Opcode.PUSH == self.opcode:
             self.machine.push(self.op2)
@@ -321,8 +337,7 @@ class Instruction:
             self.machine.pushbyte(self.op2)
 
         if Opcode.RETURN == self.opcode:
-            ret = self.machine.pop()
-            self.machine.registers[Register.RIP] = ret
+            self.machine.registers[Register.RIP] = self.machine.pop()
 
         if Opcode.STORE == self.opcode:
             addr = self.machine.registers[self.op1]

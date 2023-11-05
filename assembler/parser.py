@@ -92,39 +92,34 @@ def and_token(token, iter):
 def call_token(token, iter):
     try:
         op1 = next(iter)
-        op2 = next(iter)
     except StopIteration:
         errors.append(
-            f"unexpected end of file on line {token.line_num}. call instruction requires two operands."
+            f"unexpected end of file on line {token.line_num}. call instruction requires an operand."
         )
         return None
-
-    # first operand must be a register
-    if op1.type != Type.REGISTER:
-        errors.append(
-            f"syntax error on line {token.line_num}. first operand to call instruction must be a register."
-        )
-        return None
-    if op2.type == Type.REGISTER:
+    resolve_symbol = False
+    val = op1.value
+    if op1.type == Type.REGISTER:
         mode = AddressMode.REGISTER
-    elif op2.type == Type.LITERAL and isinstance(op2.value, int):
+    elif op1.type == Type.LITERAL:
         mode = AddressMode.LITERAL
-    elif op2.type == Type.DEREF and isinstance(op2.value, int):
-        mode = AddressMode.MEMORY
-    elif op2.type == Type.DEREF:
-        mode = AddressMode.REGISTERDEREF
+        if isinstance(op1.value, str):  # type(0) != type(op1.value):
+            if op1.value in symbol_table:
+                val = symbol_table[op1.value]
+            else:
+                resolve_symbol = True
     else:
         errors.append(
-            f"syntax error on line {token.line_num}. second operand, {op2.value}, to call instruction must be a register, literal value, or a dereference."
+            f"syntax error on line {token.line_num}. first operand to call instruction must be a register, literal value, or a label name."
         )
         return None
-
     return Node(
         opcode=Opcode.CALL,
         address_mode=mode,
-        op1=op1.value,
-        op2=op2.value,
+        op1=None,
+        op2=val,
         line_num=token.line_num,
+        resolve_symbol=resolve_symbol,
     )
 
 
@@ -508,7 +503,7 @@ def load_token(token, iter):
         return None
     resolve_symbol = False
 
-    # first operand must be a register
+    # first operand must be a register or a dereference
     if op1.type != Type.REGISTER:
         errors.append(
             f"syntax error on line {token.line_num}. first operand to load instruction must be a register."
@@ -778,13 +773,13 @@ def pop_token(token, iter):
     val = op1.value
     if op1.type == Type.REGISTER:
         mode = AddressMode.REGISTER
-    elif op1.type == Type.LITERAL:
-        mode = AddressMode.LITERAL
-        if isinstance(op1.value, str):  # type(0) != type(op1.value):
-            if op1.value in symbol_table:
-                val = symbol_table[op1.value]
-            else:
-                resolve_symbol = True
+    # elif op1.type == Type.LITERAL:
+    #     mode = AddressMode.LITERAL
+    #     if isinstance(op1.value, str):  # type(0) != type(op1.value):
+    #         if op1.value in symbol_table:
+    #             val = symbol_table[op1.value]
+    #         else:
+    #             resolve_symbol = True
     else:
         errors.append(
             f"syntax error on line {token.line_num}. first operand to pop instruction must be a register, literal value, or a label name."
@@ -793,8 +788,8 @@ def pop_token(token, iter):
     return Node(
         opcode=Opcode.POP,
         address_mode=mode,
-        op1=None,
-        op2=val,
+        op1=val,
+        op2=None,
         line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
@@ -809,26 +804,18 @@ def popbyte_token(token, iter):
         )
         return None
     resolve_symbol = False
-    val = op1.value
     if op1.type == Type.REGISTER:
         mode = AddressMode.REGISTER
-    elif op1.type == Type.LITERAL:
-        mode = AddressMode.LITERAL
-        if isinstance(op1.value, str):
-            if op1.value in symbol_table:
-                val = symbol_table[op1.value]
-            else:
-                resolve_symbol = True
     else:
         errors.append(
-            f"syntax error on line {token.line_num}. first operand to popbyte instruction must be a register, literal value, or a label name."
+            f"syntax error on line {token.line_num}. first operand to popbyte instruction must be a register."
         )
         return None
     return Node(
         opcode=Opcode.POPBYTE,
         address_mode=mode,
-        op1=None,
-        op2=val,
+        op1=op1.value,
+        op2=None,
         line_num=token.line_num,
         resolve_symbol=resolve_symbol,
     )
@@ -846,18 +833,20 @@ def push_token(token, iter):
     val = op1.value
     if op1.type == Type.REGISTER:
         mode = AddressMode.REGISTER
-    elif op1.type == Type.LITERAL:
+    elif op1.type == Type.LITERAL and isinstance(op1.value, int):
         mode = AddressMode.LITERAL
-        if isinstance(op1.value, str):
-            if op1.value in symbol_table:
-                val = symbol_table[op1.value]
-            else:
-                resolve_symbol = True
+    elif op1.type == Type.DEREF and isinstance(op1.value, int):
+        mode = AddressMode.MEMORY
+    elif op1.type == Type.DEREF:
+        mode = AddressMode.REGISTERDEREF
     else:
-        errors.append(
-            f"syntax error on line {token.line_num}. first operand to push instruction must be a register, literal value, or a label name."
-        )
-        return None
+        mode = AddressMode.LITERAL
+        resolve_symbol = True
+    # else:
+    #     errors.append(
+    #         f"syntax error on line {token.line_num}. operand to push instruction must be a register, literal value, or a label name."
+    #     )
+    #     return None
     return Node(
         opcode=Opcode.PUSH,
         address_mode=mode,
