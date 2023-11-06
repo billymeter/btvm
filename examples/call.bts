@@ -4,7 +4,8 @@
 start:
     push hello                  ;; put address of hello on stack
     call puts                   ;; call put string
-    add rsp 4                   ;; clear stack of puts argument
+    add rsp 2                   ;; clear stack of puts argument
+    jump exit
     halt                        ;; halt the system
 
 puts:
@@ -25,3 +26,5 @@ puts:
     load rsp rbp                ;; reset to previous stack frame
     pop rbp                     ;; restore previous stack frame
     return                      ;; return to caller
+
+exit:
