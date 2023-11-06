@@ -45,8 +45,8 @@ class Machine:
 
     def popbyte(self):
         value = self.memory[self.registers[Register.RSP]]
-        if self.registers[Register.RSP] != 0xFFFF:
-            self.registers[Register.RSP] += 1
+        # if self.registers[Register.RSP] != 0xFFFF:
+        self.registers[Register.RSP] += 1
 
         if self.registers[Register.RSP] > 0x10000 or self.registers[Register.RSP] < 0:
             self.running = False
@@ -64,8 +64,8 @@ class Machine:
 
     def pushbyte(self, value: bytes) -> None:
         # if we're at the very top of the stack, don't decrement
-        if self.registers[Register.RSP] != 0xFFFF:
-            self.registers[Register.RSP] -= 1
+        # if self.registers[Register.RSP] != 0xFFFF:
+        self.registers[Register.RSP] -= 1
         if self.registers[Register.RSP] > 0x10000 or self.registers[Register.RSP] < 0:
             self.running = False
             raise RuntimeError(
@@ -226,8 +226,8 @@ class Instruction:
 
         if AddressMode.REGISTERDEREF == self.address_mode:
             addr = self.machine.registers[register_codes[bytes(byt[4:6])]]
-            lsb = self.machine.memory[addr]
-            msb = self.machine.memory[addr - 1]
+            msb = self.machine.memory[addr]
+            lsb = self.machine.memory[addr + 1]
             self.op2 = (msb << 8) + lsb
 
         if AddressMode.LITERAL == self.address_mode:
@@ -235,8 +235,8 @@ class Instruction:
 
         if AddressMode.MEMORY == self.address_mode:
             # unpack memory address and dereference
-            lsb = self.machine.memory[int(byt[4:8], 16)]
-            msb = self.machine.memory[int(byt[4:8], 16) - 1]
+            msb = self.machine.memory[int(byt[4:8], 16)]
+            lsb = self.machine.memory[int(byt[4:8], 16) + 1]
             self.op2 = (msb << 8) + lsb
 
         if AddressMode.NONE == self.address_mode:
@@ -322,7 +322,12 @@ class Instruction:
             self.machine.registers[self.op1] |= self.op2
 
         if Opcode.OUTPUT == self.opcode:
-            sys.stdout.write(chr(self.op2))
+            # workaround for dereferences pulling 16-bits and
+            # literals only being 8 bits
+            if self.op2 > 0xFF:
+                sys.stdout.write(chr(self.op2 >> 8 & 0xFF))
+            else:
+                sys.stdout.write(chr(self.op2))
 
         if Opcode.POP == self.opcode:
             self.machine.registers[self.op1] = self.machine.pop()

@@ -1,0 +1,27 @@
+;; call and return example
+.hello: "hello, world"
+
+start:
+    push hello                  ;; put address of hello on stack
+    call puts                   ;; call put string
+    add rsp 4                   ;; clear stack of puts argument
+    halt                        ;; halt the system
+
+puts:
+    push rbp                    ;; save previous stack frame
+    load rbp rsp                ;; new stack frame
+    
+    load r0 rbp                 ;; load base pointer into r0
+    add r0 4                    ;; address of first argument
+    load r0 [r0]                ;; load address of hello world string
+
+    load r1 0                   ;; counter
+    loop:
+        output [r0]             ;; output char
+        add r0 1                ;; advance string pointer
+        add r1 1                ;; increment counter
+        compare r1 12           ;; check if counter == 12
+        jumpnoteq loop          ;; loop if not
+    load rsp rbp                ;; reset to previous stack frame
+    pop rbp                     ;; restore previous stack frame
+    return                      ;; return to caller
