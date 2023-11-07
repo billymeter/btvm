@@ -222,6 +222,70 @@ class TestVM(unittest.TestCase):
             "r1 does not equal 1",
         )
 
+    """COMPARE opcode tests"""
+
+    def test_compare_literal(self):
+        # load r0 0x57
+        # compare r0 0x57
+        # halt
+        program = b"bt_x0008ldr00057cpr00057HTbtbtbt"
+        self.machine = Machine(program)
+
+        self.machine.run()
+        self.assertEqual(
+            self.machine.registers[Register.RCOMPARE],
+            0,
+            "compare literal did not work correctly",
+        )
+
+    def test_compare_memory(self):
+        # load r0 0x5757
+        # compare r0 [0x5000]
+        # halt
+        program = b"bt_x0008ldr05757cPr05000HTbtbtbt"
+        self.machine = Machine(program)
+
+        self.machine.memory[0x5000] = 0x57
+        self.machine.memory[0x5001] = 0x57
+        self.machine.run()
+        self.assertEqual(
+            self.machine.registers[Register.RCOMPARE],
+            0,
+            "compare register did not work properly",
+        )
+
+    def test_compare_register(self):
+        # load r0 0x57
+        # load r1 0x57
+        # compare r0 r1
+        # halt
+        program = b"bt_x0008ldr00057ldr10057Cpr0r1btHTbtbtbt"
+        self.machine = Machine(program)
+
+        self.machine.run()
+        self.assertEqual(
+            self.machine.registers[Register.RCOMPARE],
+            0,
+            "compare register did not work properly",
+        )
+
+    def test_compare_registerderef(self):
+        # load r0 0x5757
+        # load r1 0x5000
+        # compare r0 [r1]
+        # halt
+        program = b"bt_x0008ldr05757ldr15000CPr0r1btHTbtbtbt"
+        self.machine = Machine(program)
+
+        self.machine.memory[0x5000] = 0x57
+        self.machine.memory[0x5001] = 0x57
+        self.machine.run()
+        self.assertEqual(
+            self.machine.registers[Register.RCOMPARE],
+            0,
+            "compare register did not work properly",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
