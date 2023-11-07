@@ -101,9 +101,13 @@ def call_token(token, iter):
     val = op1.value
     if op1.type == Type.REGISTER:
         mode = AddressMode.REGISTER
+    elif op1.type == Type.DEREF and isinstance(op1.value, int):
+        mode = AddressMode.MEMORY
+    elif op1.type == Type.DEREF:
+        mode = AddressMode.REGISTERDEREF
     elif op1.type == Type.LITERAL:
         mode = AddressMode.LITERAL
-        if isinstance(op1.value, str):  # type(0) != type(op1.value):
+        if isinstance(op1.value, str):
             if op1.value in symbol_table:
                 val = symbol_table[op1.value]
             else:
@@ -1149,7 +1153,7 @@ def parse(tokens):
         elif token.type == Type.DEREF:
             node = deref_token(token, toks)
         elif token.type == Type.LABEL:
-            if lit.value in symbol_table:
+            if token.value in symbol_table:
                 warnings.append(
                     f"warning: overwriting value of `{token.value}` on line {token.line_num}. Is this what you wanted to do?"
                 )
