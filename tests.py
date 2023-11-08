@@ -286,6 +286,69 @@ class TestVM(unittest.TestCase):
             "compare register did not work properly",
         )
 
+    """divide opcode tests"""
+
+    def test_divide_literal(self):
+        # load r0 0x57
+        # divide r0 5
+        # halt
+        program = b"bt_x0008ldr00057dvr00005HTbtbtbt"
+        self.machine = Machine(program)
+
+        self.machine.run()
+        self.assertEqual(
+            self.machine.registers[Register.R0],
+            0x11,
+            "divide r0 5 does not set value of r0 properly",
+        )
+
+    def test_divide_memory(self):
+        # load r0 0x57
+        # divide r0 [0x5000]
+        # halt
+        program = b"bt_x0008ldr00057dVr05000HTbtbtbt"
+        self.machine = Machine(program)
+
+        self.machine.memory[0x5001] = 0x5
+
+        self.machine.run()
+        self.assertEqual(
+            self.machine.registers[Register.R0],
+            0x11,
+            "divide r0 [0x5757] does not set value of r0 properly",
+        )
+
+    def test_divide_register(self):
+        # load r0 0x57
+        # load r1 0x5
+        # divide r0 r1
+        # halt
+        program = b"bt_x0008ldr00057ldr10005Dvr0r1btHTbtbtbt"
+        self.machine = Machine(program)
+
+        self.machine.run()
+        self.assertEqual(
+            self.machine.registers[Register.R0],
+            0x11,
+            "divide r0 r1 does not set value of r0 properly",
+        )
+
+    def test_divide_registerderef(self):
+        # load r0 0x57
+        # load r1 0x5000
+        # divide r0 [r1]
+        # halt
+        program = b"bt_x0008ldr00057ldr15000DVr0r1btHTbtbtbt"
+        self.machine = Machine(program)
+        self.machine.memory[0x5001] = 0x5
+
+        self.machine.run()
+        self.assertEqual(
+            self.machine.registers[Register.R0],
+            0x11,
+            "divide r0 [r1] does not set value of r0 properly",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
