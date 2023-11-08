@@ -218,11 +218,12 @@ class Instruction:
         # on the address mode
         if AddressMode.REGISTER == self.address_mode:
             # decode the register values for the operands
-            reg = register_codes[bytes(byt[4:6])]
-            if reg:
-                self.op2 = self.machine.registers[reg]
-            else:
-                self.op2 = None
+            self.op2 = register_codes[bytes(byt[4:6])]
+            # if reg:
+            #     self.op2 = self.machine.registers[reg]
+            # else:
+            #     self.op2 = None
+            # print(f"op2 set to {reg}: {self.machine.registers[reg]}")
 
         if AddressMode.REGISTERDEREF == self.address_mode:
             addr = self.machine.registers[register_codes[bytes(byt[4:6])]]
@@ -270,7 +271,8 @@ class Instruction:
             self.machine.halt()
 
         if Opcode.INPUT == self.opcode:
-            self.machine.registers[self.op1] = sys.stdin.read(1)
+            val = sys.stdin.read(1)
+            self.machine.registers[self.op2] = ord(val)
 
         if Opcode.JUMP == self.opcode:
             self.machine.registers[Register.RIP] = self.op2
@@ -324,10 +326,13 @@ class Instruction:
         if Opcode.OUTPUT == self.opcode:
             # workaround for dereferences pulling 16-bits and
             # literals only being 8 bits
-            if self.op2 > 0xFF:
-                sys.stdout.write(chr(self.op2 >> 8 & 0xFF))
+            if isinstance(self.op2, int):
+                if self.op2 > 0xFF:
+                    sys.stdout.write(chr(self.op2 >> 8 & 0xFF))
+                else:
+                    sys.stdout.write(chr(self.op2))
             else:
-                sys.stdout.write(chr(self.op2))
+                sys.stdout.write(chr(self.machine.registers[self.op2]))
 
         if Opcode.POP == self.opcode:
             self.machine.registers[self.op1] = self.machine.pop()
