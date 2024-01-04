@@ -1,5 +1,18 @@
 # btvm architecture v0.1
 
+## tl;dr or i just want to run the programs
+these scripts and documentation are definitely consistent and without major bugs. definitely. i promise. the big novelty of this architecture is that the assembled binary programs are all ascii characters, so you can modify the "binary" files with a standard text editor.
+
+to assemble programs, use the `btasm.py` script to assemble btvm assembly source code files.
+example: `python3 btasm.py examples/hello.bts > hello.btx`
+
+once a program is assembled, run it with the `btvm.py` script as the entry point to the virtual machine.
+example: `python3 btvm.py hello.btx` which is the standard "hello, world" program
+
+the other tools are incomplete, but a disassembler and debugger are planned for development.
+
+
+
 ## design goals
 
 - simple architecture for others to learn assembly and basic binary exploitation
